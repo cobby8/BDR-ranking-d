@@ -10,20 +10,31 @@
 <style>
   .surface{background:#0e141c}.card{background:#131a24}.muted{color:#94a3b8}.accent{color:#ffd54a}
   .shadow-smooth{box-shadow:0 10px 30px rgba(0,0,0,.35)}.num{font-variant-numeric:tabular-nums}
+
+  /* Movement badge */
   .badge{display:inline-flex;align-items:center;gap:.4rem;border-radius:9999px;padding:.35rem .75rem;line-height:1;font-weight:800;font-size:.95rem}
   .badge-up{background:rgba(239,68,68,.15);color:#fecaca;border:1px solid rgba(239,68,68,.35)}
   .badge-down{background:rgba(59,130,246,.15);color:#bfdbfe;border:1px solid rgba(59,130,246,.35)}
   .badge-stay{background:rgba(148,163,184,.12);color:#cbd5e1;border:1px solid rgba(148,163,184,.30)}
   .icon{width:1.05em;height:1.05em}
+
+  /* Top-3 decoration */
   .top1{border:1.5px solid rgba(255,215,0,.55);background:linear-gradient(180deg,rgba(255,215,0,.10),transparent 50%),#131a24}
   .top2{border:1.5px solid rgba(192,192,192,.55);background:linear-gradient(180deg,rgba(192,192,192,.10),transparent 50%),#131a24}
   .top3{border:1.5px solid rgba(205,127,50,.55);background:linear-gradient(180deg,rgba(205,127,50,.10),transparent 50%),#131a24}
   .medal{font-weight:900;letter-spacing:.02em}.medal-g{color:#ffd700}.medal-s{color:#c0c0c0}.medal-b{color:#cd7f32}
+
+  /* Movement animations */
   @keyframes popUp{0%{transform:translateY(4px) scale(.98);opacity:0}60%{transform:translateY(-2px) scale(1.02);opacity:1}100%{transform:translateY(0) scale(1)}}
   @keyframes popDown{0%{transform:translateY(-4px) scale(.98);opacity:0}60%{transform:translateY(2px) scale(1.02);opacity:1}100%{transform:translateY(0) scale(1)}}
   .animate-up{animation:popUp .45s cubic-bezier(.2,.8,.2,1)}.animate-down{animation:popDown .45s cubic-bezier(.2,.8,.2,1)}
-  .spinner{width:24px;height:24px;border-radius:9999px;border:3px solid #1f2a3a;border-top-color:#60a5fa;animation:spin .9s linear infinite}
-  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* Region rank chip */
+  .chip{font-size:.75rem;padding:.35rem .6rem;border-radius:9999px;background:#0c1220;border:1px solid #1f2a3a}
+  .chip-region{background:rgba(99,102,241,.12);border-color:rgba(99,102,241,.35);color:#c7d2fe}
+
+  /* City line +30% (≈ text-base) */
+  .city-line{font-size:1rem} /* 16px 기준: text-xs(12px) 대비 +33% */
 </style>
 </head>
 <body class="min-h-screen surface text-white antialiased">
@@ -42,7 +53,8 @@
   </div>
 
   <div id="status" class="flex items-center gap-3 text-sm muted mb-3">
-    <div class="spinner" aria-hidden="true"></div><span>데이터 불러오는 중…</span>
+    <div class="spinner" aria-hidden="true" style="width:24px;height:24px;border-radius:9999px;border:3px solid #1f2a3a;border-top-color:#60a5fa;animation:spin .9s linear infinite"></div>
+    <span>데이터 불러오는 중…</span>
   </div>
   <div id="error" class="hidden text-sm text-red-400 mb-3"></div>
 
@@ -59,10 +71,11 @@
 </div>
 
 <script>
-  // ✅ 같은 폴더에 있는 엑셀 파일을 상대경로로 로드 (CORS 없음)
+  // ✅ 같은 폴더에 있는 엑셀 파일을 상대경로로 로드 (GitHub Pages 권장)
   const LOCAL_XLSX_URL = "./%ED%8C%80%EB%9E%AD%ED%82%B9_20250813_1.xlsx";
 
   let BASE=[], FILTERED=[]; let PAGE=1; const PAGE_SIZE=20;
+  let LOCAL_RANK_MAP=null; // 지역별 랭킹(필터 적용 시 계산)
   const list=document.getElementById('list'), search=document.getElementById('search'), region=document.getElementById('region');
   const pageNow=document.getElementById('pageNow'), pageTotal=document.getElementById('pageTotal'), rowCount=document.getElementById('rowCount');
   const statusEl=document.getElementById('status'), errorEl=document.getElementById('error');
@@ -76,16 +89,45 @@
   function medalSpan(r){return r===1?'<span class="medal medal-g">GOLD</span>':r===2?'<span class="medal medal-s">SILVER</span>':r===3?'<span class="medal medal-b">BRONZE</span>':''}
   function movementBadge(m){const n=Number(m); if(Number.isNaN(n)) return `<span class="badge badge-stay" title="지난 주 대비 정보 없음">${m??"—"}</span>`;
     if(n>0) return `<span class="badge badge-up animate-up" title="지난 주 대비 +${n}"><svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M7 17a1 1 0 0 1-.707-1.707l9-9H10a1 1 0 1 1 0-2h9a1 1 0 0 1 1 1v9a1 1 0 1 1-2 0v-5.293l-9 9A.997.997 0 0 1 7 17z"/></svg>+${n}</span>`;
-    if(n<0){const v=Math.abs(n); return `<span class="badge badge-down animate-down" title="지난 주 대비 -${v}"><svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M17 7a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-9a1 1 0  1 1 0-2h5.293l-9-9A1 1 0 1 1 5.707 6.293l9 9V10a1 1 0 0 1 2 0V7z"/></svg>-${v}</span>`}
+    if(n<0){const v=Math.abs(n); return `<span class="badge badge-down animate-down" title="지난 주 대비 -${v}"><svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M17 7a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-9a1 1 0 1 1 0-2h5.293l-9-9A1 1 0  1 1 5.707 6.293l9 9V10a1 1 0 0 1 2 0V7z"/></svg>-${v}</span>`}
     return `<span class="badge badge-stay" title="지난 주 대비 0">— 0</span>`}
 
-  function applyFilter(){const q=(search.value||'').toLowerCase(), reg=region.value;
-    FILTERED=BASE.filter(it=>{const hay=(it.team+' '+it.city).toLowerCase(); return (!q||hay.includes(q))&&(!reg||it.city===reg)}); PAGE=1; render()}
+  function buildLocalRankMap(){
+    const reg=region.value;
+    if(!reg){ LOCAL_RANK_MAP=null; return; }
+    // 지역 선택된 데이터만 대상으로 'rank' 오름차순 기준 지역 랭킹 계산
+    const subset = FILTERED.slice().sort((a,b)=> (a.rank??Infinity)-(b.rank??Infinity));
+    const map = new Map();
+    subset.forEach((item, idx) => {
+      const key = item.team + "||" + (item.city || "");
+      map.set(key, idx+1);
+    });
+    LOCAL_RANK_MAP = map;
+  }
+  function regionalBadge(team, city){
+    if(!LOCAL_RANK_MAP) return '';
+    const key = team + "||" + (city || "");
+    const n = LOCAL_RANK_MAP.get(key);
+    if(!n) return '';
+    return `<span class="chip chip-region" title="현재 선택한 지역 내 순위">지역 랭킹 ${n}위</span>`;
+  }
+
+  function applyFilter(){
+    const q=(search.value||'').toLowerCase(), reg=region.value;
+    FILTERED=BASE.filter(it=>{
+      const hay=(it.team+' '+it.city).toLowerCase();
+      return (!q||hay.includes(q))&&(!reg||it.city===reg)
+    });
+    PAGE=1;
+    buildLocalRankMap();
+    render();
+  }
 
   function render(){
     const total=Math.max(1,Math.ceil(FILTERED.length/PAGE_SIZE));
     if(PAGE>total) PAGE=total; pageNow.textContent=PAGE; pageTotal.textContent=total; rowCount.textContent=FILTERED.length;
     const slice=FILTERED.slice((PAGE-1)*PAGE_SIZE,(PAGE)*PAGE_SIZE);
+
     list.innerHTML=slice.map(it=>`
       <div class="card shadow-smooth rounded-2xl border border-[#1f2a3a] px-4 sm:px-6 py-4 ${byRankClass(it.rank)}">
         <div class="grid grid-cols-12 items-center gap-3">
@@ -93,10 +135,13 @@
             <div class="text-2xl sm:text-3xl font-extrabold num">${it.rank}</div>
             <div class="text-[10px] mt-1">${medalSpan(it.rank)}</div>
           </div>
-          <div class="col-span-3 sm:col-span-2">${movementBadge(it.move)}</div>
+          <div class="col-span-3 sm:col-span-2 flex items-center gap-2 flex-wrap">
+            ${movementBadge(it.move)}
+            ${regionalBadge(it.team, it.city)}
+          </div>
           <div class="col-span-4 sm:col-span-6">
             <div class="text-lg sm:text-xl font-semibold">${it.team}</div>
-            <div class="text-xs muted mt-0.5">${it.city||''}</div>
+            <div class="city-line muted mt-0.5">${it.city || ''}</div>
           </div>
           <div class="col-span-3 sm:col-span-3 text-right">
             <div class="text-2xl sm:text-3xl font-extrabold accent num">${(it.score??'').toString()}</div>
@@ -104,13 +149,14 @@
           </div>
         </div>
       </div>`).join('');
+
     document.getElementById('prev').disabled=PAGE<=1; document.getElementById('next').disabled=PAGE>=total
   }
 
   async function loadLocal(){
     statusEl.classList.remove('hidden'); errorEl.classList.add('hidden'); errorEl.textContent='';
     try{
-      const res=await fetch(LOCAL_XLSX_URL,{cache:'no-store'}); // 같은 출처이므로 CORS 문제 없음
+      const res=await fetch(LOCAL_XLSX_URL,{cache:'no-store'});
       if(!res.ok) throw new Error(`HTTP ${res.status}`);
       const ab=await res.arrayBuffer();
       const wb=XLSX.read(new Uint8Array(ab),{type:'array'});
@@ -125,7 +171,6 @@
                   score:pickColumn(headerKeys,MAP_CANDIDATES.score),
                   move:pickColumn(headerKeys,MAP_CANDIDATES.move) };
 
-      const region=document.getElementById('region');
       const regionSet=new Set();
       BASE=rows.map((r,i)=>{
         const obj={ rank:MAP.rank?Number(r[MAP.rank])||(i+1):(i+1),
@@ -138,13 +183,16 @@
         return obj;
       });
 
-      region.innerHTML='<option value="">전체 지역</option>'+Array.from(regionSet).sort().map(v=>`<option value="${v}">${v}</option>`).join('');
+      // 지역 드롭다운 채우기
+      region.innerHTML='<option value="">전체 지역</option>'+
+        Array.from(regionSet).sort().map(v=>`<option value="${v}">${v}</option>`).join('');
 
       statusEl.classList.add('hidden');
       FILTERED=[...BASE];
-      // 이벤트 바인딩은 데이터 로드 후에
-      document.getElementById('search').addEventListener('input',applyFilter);
-      document.getElementById('region').addEventListener('change',applyFilter);
+      buildLocalRankMap();
+      // 이벤트
+      search.addEventListener('input',applyFilter);
+      region.addEventListener('change',applyFilter);
       document.getElementById('prev').addEventListener('click',()=>{PAGE=Math.max(1,PAGE-1);render()});
       document.getElementById('next').addEventListener('click',()=>{const t=Math.max(1,Math.ceil(FILTERED.length/PAGE_SIZE)); PAGE=Math.min(t,PAGE+1);render()});
       render();
