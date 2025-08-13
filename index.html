@@ -63,12 +63,20 @@
   .ex-rank-num{font-size:44px;font-weight:900}
   .ex-medal{font-size:11px;margin-top:3px}
 
-  .ex-badges{display:flex;flex-direction:column;gap:6px;align-items:flex-start;} /* ← 폭 늘어짐 방지 */
-  .ex-badge{
-    display:inline-flex;align-items:center;gap:8px;
-    padding:6px 12px;border-radius:9999px;border:1px solid rgba(148,163,184,.34);
-    font-size:18px;font-weight:800;line-height:1;align-self:flex-start;width:auto; /* ← 콘텐츠 폭만 */
-  }
+.ex-badge {
+  display: inline-flex;
+  align-items: center;      /* ← 세로 중앙 정렬 */
+  justify-content: center;  /* ← 가로 중앙 (아이콘/텍스트 균형) */
+  gap: 6px;
+  padding: 4px 12px;        /* ← 패딩 줄여서 높이 비율 맞춤 */
+  border-radius: 9999px;
+  border: 1px solid rgba(148,163,184,.34);
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1;           /* ← 텍스트 높이를 정확히 맞춤 */
+  height: 28px;             /* ← 고정 높이 부여로 일관성 */
+}
+
   .ex-badge.up{background:rgba(239,68,68,.18);color:#fca5a5;border-color:rgba(239,68,68,.5)}
   .ex-badge.down{background:rgba(59,130,246,.18);color:#93c5fd;border-color:rgba(59,130,246,.5)}
   .ex-badge.stay{background:rgba(148,163,184,.14);color:#cbd5e1}
