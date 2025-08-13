@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BDR 랭킹 - 일반부</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="color-scheme" content="dark" />
+  <style>
+    /* Theme */
+    .surface { background: #0e141c; }
+    .card { background: #131a24; }
+    .muted { color: #94a3b8; }
+    .accent { color: #ffd54a; }
+    .shadow-smooth { box-shadow: 0 10px 30px rgba(0,0,0,.35); }
+    .num { font-variant-numeric: tabular-nums; }
+
+    /* Movement badge */
+    .badge { display:inline-flex; align-items:center; gap:.4rem; border-radius:9999px; padding:.35rem .75rem; line-height:1; font-weight:800; font-size:.95rem; }
+    .badge-up   { background: rgba(239, 68, 68, 0.15); color:#fecaca; border:1px solid rgba(239,68,68,.35);}
+    .badge-down { background: rgba(59,130,246, 0.15); color:#bfdbfe; border:1px solid rgba(59,130,246,.35);}
+    .badge-stay { background: rgba(148,163,184,0.12); color:#cbd5e1; border:1px solid rgba(148,163,184,.30);}
+    .icon { width: 1.05em; height: 1.05em; }
+
+    /* Top-3 decoration */
+    .top1 { border:1.5px solid rgba(255,215,0,.55); background: linear-gradient(180deg, rgba(255,215,0,0.10), transparent 50%) , #131a24; }
+    .top2 { border:1.5px solid rgba(192,192,192,.55); background: linear-gradient(180deg, rgba(192,192,192,0.10), transparent 50%) , #131a24; }
+    .top3 { border:1.5px solid rgba(205,127,50,.55); background: linear-gradient(180deg, rgba(205,127,50,0.10), transparent 50%) , #131a24; }
+    .medal { font-weight:900; letter-spacing:.02em; }
+    .medal-g { color:#ffd700; }
+    .medal-s { color:#c0c0c0; }
+    .medal-b { color:#cd7f32; }
+
+    /* Movement animations */
+    @keyframes popUp {
+      0%   { transform: translateY(4px) scale(.98); opacity:.0; }
+      60%  { transform: translateY(-2px) scale(1.02); opacity:1; }
+      100% { transform: translateY(0) scale(1); }
+    }
+    @keyframes popDown {
+      0%   { transform: translateY(-4px) scale(.98); opacity:.0; }
+      60%  { transform: translateY(2px) scale(1.02); opacity:1; }
+      100% { transform: translateY(0) scale(1); }
+    }
+    .animate-up   { animation: popUp .45s cubic-bezier(.2,.8,.2,1); }
+    .animate-down { animation: popDown .45s cubic-bezier(.2,.8,.2,1); }
+  </style>
+</head>
+<body class="min-h-screen surface text-white antialiased">
+  <div class="max-w-6xl mx-auto px-4 py-6">
+    <!-- Header -->
+    <div class="flex flex-col items-center justify-center mb-6">
+      <!-- 로고: 필요 시 src 교체 -->
+      <img src="BDR(배경없음).png" alt="BDR Logo" class="h-20 object-contain mb-2">
+      <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">BDR 랭킹 - 일반부</h1>
+      <div class="text-xs muted mt-1" id="lastUpdated"></div>
+    </div>
+
+    <!-- Filters in header -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+      <input id="search" type="search" placeholder="팀명/지역 검색…" class="col-span-2 rounded-xl bg-[#0b111a] border border-[#1f2a3a] px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500" />
+      <select id="region" class="rounded-xl bg-[#0b111a] border border-[#1f2a3a] px-4 py-3">
+        <option value="">전체 지역</option>
+      </select>
+    </div>
+
+    <!-- List -->
+    <div id="list" class="space-y-2"></div>
+
+    <!-- Pager -->
+    <div class="mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div class="rounded-full px-3 py-1 chip bg-[#0c1220] border border-[#1f2a3a] text-xs">페이지 <span id="pageNow">1</span> / <span id="pageTotal">1</span></div>
+      <div class="muted text-sm">총 <span id="rowCount"></span>개 팀</div>
+      <div class="flex gap-2">
+        <button id="prev" class="px-4 py-2 rounded-lg bg-[#0b111a] border border-[#1f2a3a] disabled:opacity-50">이전</button>
+        <button id="next" class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500">다음</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ====== CONFIG: 데이터 & 컬럼 매핑 ======
+       - 아래 rows 배열에 데이터가 들어갑니다.
+       - 실제 컬럼명이 다르면 map의 값을 바꿔주세요.
+    */
+    const CONFIG = {
+      map: { rank: "랭킹", team: "팀", city: "지역", score: "점수", move: "랭킹 변화" },
+      page_size: 20,
+      rows: [
+        /* 예시) { "랭킹": 1, "팀": "아울스(OWLS)", "지역": "경기", "점수": 1621.88, "랭킹 변화": 0 }, ... */
+        /* 업로드하신 시트의 데이터를 여기에 그대로 넣어두세요. 
+           이미 제가 만들어 드린 파일(bdr_ranking_logo_header_strong_move.html)을 열어서
+           CONFIG.rows 전체를 복사-붙여넣기 하시면 가장 간단합니다. */
+      ]
+    };
+
+    // ---- 시간표기
+    function formatDate(d) {
+      const z = (n)=> String(n).padStart(2,'0');
+      return `${d.getFullYear()}년 ${z(d.getMonth()+1)}월 ${z(d.getDate())}일`;
+    }
+    document.getElementById('lastUpdated').textContent = formatDate(new Date());
+
+    const map = CONFIG.map;
+    const colRank  = map.rank;
+    const colTeam  = map.team;
+    const colCity  = map.city;
+    const colScore = map.score;
+    const colMove  = map.move;
+
+    const list = document.getElementById('list');
+    const search = document.getElementById('search');
+    const region = document.getElementById('region');
+    const pageNow = document.getElementById('pageNow');
+    const pageTotal = document.getElementById('pageTotal');
+    const rowCount = document.getElementById('rowCount');
+    const PAGE_SIZE = CONFIG.page_size || 20;
+
+    // 지역 옵션 구성
+    const regions = Array.from(new Set(CONFIG.rows.map(r => (r[colCity] ?? '')).filter(Boolean))).sort();
+    regions.forEach(v => {
+      const opt = document.createElement('option');
+      opt.value = v; opt.textContent = v;
+      region.appendChild(opt);
+    });
+
+    // 표준화 데이터
+    const base = CONFIG.rows.map((r, i) => ({
+      rank:  r[colRank]  ?? (i+1),
+      team:  r[colTeam]  ?? '',
+      city:  r[colCity]  ?? '',
+      score: r[colScore] ?? '',
+      move:  r[colMove]  ?? 0,
+      raw:   r
+    }));
+
+    let filtered = [...base];
+    let page = 1;
+
+    // 검색/필터
+    function applyFilter() {
+      const q = (search.value || '').toLowerCase();
+      const reg = region.value;
+      filtered = base.filter(item => {
+        const hay = (item.team + ' ' + item.city).toLowerCase();
+        const okQ = !q || hay.includes(q);
+        const okR = !reg || item.city === reg;
+        return okQ && okR;
+      });
+      page = 1;
+      render();
+    }
+
+    // 상위 3팀 클래스 & 메달 텍스트
+    function top3Class(rank) {
+      if (rank === 1) return 'top1';
+      if (rank === 2) return 'top2';
+      if (rank === 3) return 'top3';
+      return '';
+    }
+    function medalSpan(rank) {
+      if (rank === 1) return '<span class="medal medal-g">GOLD</span>';
+      if (rank === 2) return '<span class="medal medal-s">SILVER</span>';
+      if (rank === 3) return '<span class="medal medal-b">BRONZE</span>';
+      return '';
+    }
+
+    // 랭킹 변동 배지 (툴팁/애니메이션 포함)
+    function movementBadge(move) {
+      const n = Number(move);
+      if (Number.isNaN(n)) return `<span class="badge badge-stay" title="지난 주 대비 정보 없음">${move}</span>`;
+      if (n > 0) {
+        return `<span class="badge badge-up animate-up" title="지난 주 대비 +${n}">
+          <svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M7 17a1 1 0 0 1-.707-1.707l9-9H10a1 1 0 1 1 0-2h9a1 1 0 0 1 1 1v9a1 1 0 1 1-2 0v-5.293l-9 9A.997.997 0 0 1 7 17z"/>
+          </svg>
+          +${n}
+        </span>`;
+      }
+      if (n < 0) {
+        const v = Math.abs(n);
+        return `<span class="badge badge-down animate-down" title="지난 주 대비 -${v}">
+          <svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M17 7a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-9a1 1 0 1 1 0-2h5.293l-9-9A1 1 0 1 1 5.707 6.293l9 9V10a1 1 0 0 1 2 0V7z"/>
+          </svg>
+          -${v}
+        </span>`;
+      }
+      return `<span class="badge badge-stay" title="지난 주 대비 0">— 0</span>`;
+    }
+
+    function render() {
+      const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+      if (page > totalPages) page = totalPages;
+      pageNow.textContent = page;
+      pageTotal.textContent = totalPages;
+      rowCount.textContent = filtered.length;
+
+      const start = (page - 1) * PAGE_SIZE;
+      const slice = filtered.slice(start, start + PAGE_SIZE);
+
+      list.innerHTML = slice.map(item => `
+        <div class="card shadow-smooth rounded-2xl border border-[#1f2a3a] px-4 sm:px-6 py-4 ${top3Class(item.rank)}">
+          <div class="grid grid-cols-12 items-center gap-3">
+            <div class="col-span-2 sm:col-span-1 flex flex-col items-start">
+              <div class="text-2xl sm:text-3xl font-extrabold num">${item.rank}</div>
+              <div class="text-[10px] mt-1">${medalSpan(item.rank)}</div>
+            </div>
+            <div class="col-span-3 sm:col-span-2">
+              ${movementBadge(item.move)}
+            </div>
+            <div class="col-span-4 sm:col-span-6">
+              <div class="text-lg sm:text-xl font-semibold">${item.team}</div>
+              <div class="text-xs muted mt-0.5">${item.city || ''}</div>
+            </div>
+            <div class="col-span-3 sm:col-span-3 text-right">
+              <div class="text-2xl sm:text-3xl font-extrabold accent num">${(item.score ?? '').toString()}</div>
+              <div class="text-[10px] muted">점</div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      document.getElementById('prev').disabled = page <= 1;
+      document.getElementById('next').disabled = page >= totalPages;
+    }
+
+    // 이벤트
+    search.addEventListener('input', applyFilter);
+    region.addEventListener('change', applyFilter);
+    document.getElementById('prev').addEventListener('click', () => { page = Math.max(1, page - 1); render(); });
+    document.getElementById('next').addEventListener('click', () => {
+      const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+      page = Math.min(totalPages, page + 1);
+      render();
+    });
+
+    // 최초 렌더
+    render();
+  </script>
+</body>
+</html>
