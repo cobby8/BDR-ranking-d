@@ -29,7 +29,6 @@
 <body class="min-h-screen surface text-white antialiased">
 <div class="max-w-6xl mx-auto px-4 py-6">
   <div class="flex flex-col items-center justify-center mb-6">
-    <!-- 로고 이미지는 같은 폴더에 두거나 URL로 교체 -->
     <img src="BDR(배경없음).png" alt="BDR Logo" class="h-20 object-contain mb-2">
     <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">BDR 랭킹 - 일반부</h1>
     <div class="text-xs muted mt-1" id="lastUpdated"></div>
@@ -60,8 +59,8 @@
 </div>
 
 <script>
-  // ✅ 정확한 Raw URL (파일명: 팀랭킹_20250813_1.xlsx)
-  const GITHUB_XLSX_URL = "https://raw.githubusercontent.com/cobby8/BDR-ranking/main/%ED%8C%80%EB%9E%AD%ED%82%B9_20250813_1.xlsx";
+  // ✅ jsDelivr CDN 경로 (한글 파일명 OK)
+  const GITHUB_XLSX_URL = "https://cdn.jsdelivr.net/gh/cobby8/BDR-ranking@main/%ED%8C%80%EB%9E%AD%ED%82%B9_20250813_1.xlsx";
 
   let BASE=[], FILTERED=[]; let PAGE=1; const PAGE_SIZE=20;
   const list=document.getElementById('list'), search=document.getElementById('search'), region=document.getElementById('region');
@@ -112,73 +111,34 @@
   document.getElementById('prev').addEventListener('click',()=>{PAGE=Math.max(1,PAGE-1);render()});
   document.getElementById('next').addEventListener('click',()=>{const t=Math.max(1,Math.ceil(FILTERED.length/PAGE_SIZE)); PAGE=Math.min(t,PAGE+1);render()});
 
-  function normalizeGithubRaw(rawUrl){
-    const u=new URL(rawUrl);
-    if(u.hostname!=='raw.githubusercontent.com') return { primary: rawUrl, fallback: null };
-    const parts=u.pathname.split('/').filter(Boolean);
-    if(parts.length<4) return { primary: rawUrl, fallback: null };
-    const owner=parts[0], repo=parts[1], branch=parts[2], pathParts=parts.slice(3);
-    const encodedPath=pathParts.map(encodeURIComponent).join('/');
-    const primary=`https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${encodedPath}`;
-    const fallback=`https://cdn.jsdelivr.net/gh/${owner}/${repo}@${branch}/${encodedPath}`;
-    return { primary, fallback };
-  }
-  async function fetchArrayBuffer(url){
-    const res=await fetch(url,{cache:'no-store',mode:'cors'});
-    if(!res.ok) throw new Error(`HTTP ${res.status}`);
-    return await res.arrayBuffer();
-  }
-
   async function loadFromGithub(){
     statusEl.classList.remove('hidden'); errorEl.classList.add('hidden'); errorEl.textContent='';
     try{
-      const { primary, fallback }=normalizeGithubRaw(GITHUB_XLSX_URL);
-      let ab;
-      try{ ab=await fetchArrayBuffer(primary); }
-      catch(e1){ if(!fallback) throw e1; ab=await fetchArrayBuffer(fallback); }
-
+      const res=await fetch(GITHUB_XLSX_URL,{cache:'no-store',mode:'cors',referrerPolicy:'no-referrer'});
+      if(!res.ok) throw new Error(`HTTP ${res.status}`);
+      const ab=await res.arrayBuffer();
       const wb=XLSX.read(new Uint8Array(ab),{type:'array'});
       const ws=wb.Sheets[wb.SheetNames[0]];
       const rows=XLSX.utils.sheet_to_json(ws,{defval:'',raw:true});
       if(!rows.length) throw new Error('시트가 비어있습니다.');
-
       const headerKeys=Object.keys(rows[0]);
       const cRank =pickColumn(headerKeys,MAP_CANDIDATES.rank);
       const cTeam =pickColumn(headerKeys,MAP_CANDIDATES.team);
       const cCity =pickColumn(headerKeys,MAP_CANDIDATES.city);
       const cScore=pickColumn(headerKeys,MAP_CANDIDATES.score);
       const cMove =pickColumn(headerKeys,MAP_CANDIDATES.move);
-
       const regionSet=new Set();
       BASE=rows.map((r,i)=>{
-        const obj={
-          rank: cRank? Number(r[cRank]) || (i+1):(i+1),
-          team: cTeam? r[cTeam] : '',
-          city: cCity? r[cCity] : '',
-          score: cScore? r[cScore] : '',
-          move: cMove? (r[cMove]===''?0:r[cMove]) : 0,
-          raw: r
-        };
-        if(obj.city) regionSet.add(obj.city);
-        return obj;
+        const obj={ rank:cRank?Number(r[cRank])||(i+1):(i+1), team:cTeam?r[cTeam]:'', city:cCity?r[cCity]:'', score:cScore?r[cScore]:'', move:cMove?(r[cMove]===''?0:r[cMove]):0, raw:r };
+        if(obj.city) regionSet.add(obj.city); return obj;
       });
-
       region.innerHTML='<option value="">전체 지역</option>'+Array.from(regionSet).sort().map(v=>`<option value="${v}">${v}</option>`).join('');
-
-      statusEl.classList.add('hidden');
-      FILTERED=[...BASE];
-      render();
+      statusEl.classList.add('hidden'); FILTERED=[...BASE]; render();
     }catch(err){
-      statusEl.classList.add('hidden');
-      errorEl.classList.remove('hidden');
-      errorEl.textContent=`데이터 로드 오류: ${err.message}.
-- 링크가 올바른 Raw URL인지
-- 저장소가 Public인지
-- Git LFS가 아닌 일반 파일인지
-- 경로/파일명이 정확한지(한글/공백 자동 인코딩됨)`;
+      statusEl.classList.add('hidden'); errorEl.classList.remove('hidden');
+      errorEl.textContent=`데이터 로드 오류: ${err.message}. jsDelivr 주소 또는 저장소/브랜치/경로를 확인하세요.`;
     }
   }
-
   loadFromGithub();
 </script>
 </body>
