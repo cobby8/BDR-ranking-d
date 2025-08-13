@@ -26,6 +26,8 @@
   .badge-up{background:rgba(239,68,68,.18);color:#fca5a5;border:1px solid rgba(239,68,68,.5)}
   .badge-down{background:rgba(59,130,246,.18);color:#93c5fd;border:1px solid rgba(59,130,246,.5)}
   .badge-stay{background:rgba(148,163,184,.14);color:#cbd5e1;border:1px solid rgba(148,163,184,.34)}
+  /* 화면용: 정렬 바 */
+  .badge .dash{display:inline-block;width:16px;height:2px;background:currentColor;border-radius:2px}
 
   /* Score change styles */
   .score-up { color: #f87171; font-weight: 700; }
@@ -52,31 +54,29 @@
   .ex-row{display:flex;align-items:flex-end;justify-content:space-between;width:100%}
   .ex-title{font-size:40px;font-weight:800;letter-spacing:.2px}
   .ex-date{font-size:20px;color:#94a3b8;font-weight:700}
-  /* 리스트 영역 높이: 패딩(48) + 헤더(120 가량) 제외 */
   .ex-list{display:flex;flex-direction:column;gap:8px;height:calc(1350px - 48px - 120px);overflow:hidden}
 
   .ex-card{background:#131a24;border:1px solid #1f2a3a;border-radius:16px;padding:14px 18px}
-  /* [순위 80] [배지 200] [팀/지역 자동] [점수 220] */
   .ex-grid{display:grid;grid-template-columns:80px 200px 1fr 220px;align-items:center;column-gap:16px}
 
   .ex-rank{display:flex;flex-direction:column;align-items:flex-start}
   .ex-rank-num{font-size:44px;font-weight:900}
   .ex-medal{font-size:11px;margin-top:3px}
 
-  .ex-badges{display:flex;flex-direction:column;gap:6px;align-items:flex-start;} /* 늘어짐 방지 */
+  .ex-badges{display:flex;flex-direction:column;gap:6px;align-items:flex-start;}
   .ex-badge{
-    display:inline-flex; align-items:center; justify-content:center;
-    gap:6px; padding:4px 12px; border-radius:9999px;
-    border:1px solid rgba(148,163,184,.34);
-    font-size:18px; font-weight:800; line-height:1;
-    height:28px; width:auto; align-self:flex-start; /* 세로/가로 정렬 고정 */
+    display:inline-flex;align-items:center;justify-content:center;
+    gap:6px;padding:4px 12px;border-radius:9999px;border:1px solid rgba(148,163,184,.34);
+    font-size:18px;font-weight:800;line-height:1;height:28px;width:auto;align-self:flex-start;
   }
   .ex-badge.up{background:rgba(239,68,68,.18);color:#fca5a5;border-color:rgba(239,68,68,.5)}
   .ex-badge.down{background:rgba(59,130,246,.18);color:#93c5fd;border-color:rgba(59,130,246,.5)}
   .ex-badge.stay{background:rgba(148,163,184,.14);color:#cbd5e1}
+  /* 캡처용: 정렬 바 */
+  .ex-badge .dash{display:inline-block;width:16px;height:2px;background:currentColor;border-radius:2px}
 
   .ex-team{display:flex;flex-direction:column}
-  .ex-team-name{font-size:34px;font-weight:800}   /* 캡처에서 크게 */
+  .ex-team-name{font-size:34px;font-weight:800}
   .ex-city{font-size:20px;color:#94a3b8;margin-top:4px}
 
   .ex-score{display:flex;flex-direction:column;align-items:flex-end}
@@ -158,8 +158,23 @@
   function pickColumn(keys,cands){for(const c of cands){const f=keys.find(k=>(k||"").toLowerCase().includes(c.toLowerCase())); if(f) return f} return null}
   function byRankClass(r){return r===1?'top1':r===2?'top2':r===3?'top3':''}
   function medalSpan(r){return r===1?'<span class="medal-g">GOLD</span>':r===2?'<span class="medal-s">SILVER</span>':r===3?'<span class="medal-b">BRONZE</span>':''}
-  function movementBadge(m){const n=Number(m); if(Number.isNaN(n)) return `<span class="badge badge-stay">— 0</span>`; if(n>0) return `<span class="badge badge-up animate-up">+${n}</span>`; if(n<0) return `<span class="badge badge-down animate-down">-${Math.abs(n)}</span>`; return `<span class="badge badge-stay">— 0</span>`}
-  function scoreChangeBadge(val){if(val===null || val===undefined || val==="" || Number(val)===0) return `<span class="score-same">-</span>`; const num=Number(val); if(Number.isNaN(num)) return `<span class="score-same">-</span>`; if(num>0) return `<span class="score-up">+${num}</span>`; if(num<0) return `<span class="score-down">-${Math.abs(num)}</span>`; return `<span class="score-same">-</span>`}
+
+  /* 화면용 랭킹변화 배지: 0일 때 텍스트 대신 바(dash) + 숫자 */
+  function movementBadge(m){
+    const n = Number(m);
+    if(Number.isNaN(n)) return `<span class="badge badge-stay"><span class="dash"></span><span>0</span></span>`;
+    if(n>0) return `<span class="badge badge-up animate-up">+${n}</span>`;
+    if(n<0) return `<span class="badge badge-down animate-down">-${Math.abs(n)}</span>`;
+    return `<span class="badge badge-stay"><span class="dash"></span><span>0</span></span>`;
+  }
+  function scoreChangeBadge(val){
+    if(val===null || val===undefined || val==="" || Number(val)===0) return `<span class="score-same">-</span>`;
+    const num=Number(val);
+    if(Number.isNaN(num)) return `<span class="score-same">-</span>`;
+    if(num>0) return `<span class="score-up">+${num}</span>`;
+    if(num<0) return `<span class="score-down">-${Math.abs(num)}</span>`;
+    return `<span class="score-same">-</span>`;
+  }
 
   function buildLocalRankMap(){
     const reg=region.value;
@@ -210,18 +225,22 @@
     </div>`;
   }
 
-  /* EXPORT(4:5) 전용 카드: 고정 px */
+  /* EXPORT(4:5) 전용 카드: 0일 때도 중앙 정렬 바 사용 */
   function exportCardHTML(it){
     const n = Number(it.move);
     const moveClass = Number.isNaN(n) ? 'stay' : (n>0?'up':n<0?'down':'stay');
-    const moveText = Number.isNaN(n) ? '— 0' : (n>0?`+${n}`:(n<0?`-${Math.abs(n)}`:'— 0'));
     const scoreVal = Number(it.score);
     const scoreText = isNaN(scoreVal) ? (it.score??'') : scoreVal.toFixed(1);
     const diff = it.scoreChange;
-    const diffHTML = (diff===null || diff===undefined || diff==="" || Number(diff)===0)
-      ? `<span class="ex-same">-</span>`
-      : (Number(diff)>0 ? `<span class="ex-up">+${Number(diff)}</span>` : `<span class="ex-down">-${Math.abs(Number(diff))}</span>`);
+    const diffHTML =
+      (diff===null || diff===undefined || diff==="" || Number(diff)===0)
+        ? `<span class="ex-same">-</span>`
+        : (Number(diff)>0 ? `<span class="ex-up">+${Number(diff)}</span>` : `<span class="ex-down">-${Math.abs(Number(diff))}</span>`);
     const localRank = LOCAL_RANK_MAP ? (LOCAL_RANK_MAP.get(it.team+"||"+(it.city||""))||'') : '';
+    const moveHTML =
+      Number.isNaN(n) ? `<span class="dash"></span><span>0</span>` :
+      (n>0 ? `+${n}` : (n<0 ? `-${Math.abs(n)}` : `<span class="dash"></span><span>0</span>`));
+
     return `
     <div class="ex-card ${byRankClass(it.rank)}">
       <div class="ex-grid">
@@ -230,7 +249,7 @@
           <div class="ex-medal">${(it.rank===1?'<span class="medal-g">GOLD</span>':it.rank===2?'<span class="medal-s">SILVER</span>':it.rank===3?'<span class="medal-b">BRONZE</span>':'')}</div>
         </div>
         <div class="ex-badges">
-          <span class="ex-badge ${moveClass}">${moveText}</span>
+          <span class="ex-badge ${moveClass}">${moveHTML}</span>
           ${LOCAL_RANK_MAP ? `<span class="ex-badge" style="background:rgba(99,102,241,.14);border-color:rgba(99,102,241,.45);color:#c7d2fe">지역 랭킹 ${localRank}위</span>` : ``}
         </div>
         <div class="ex-team">
@@ -323,7 +342,6 @@
     const endIdx = Math.min(FILTERED.length,(e||15));
     const slice = FILTERED.slice(startIdx,endIdx);
 
-    // 오프스크린 캡처 스테이지(고정 px 레이아웃)
     const stage = document.createElement('div');
     stage.className='ex-root';
     stage.innerHTML = `
