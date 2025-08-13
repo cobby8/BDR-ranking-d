@@ -14,34 +14,24 @@
   .surface{background:var(--surface)} .card{background:var(--card)} .muted{color:var(--muted)} .accent{color:var(--accent)}
   .shadow-smooth{box-shadow:0 10px 30px rgba(0,0,0,.35)} .num{font-variant-numeric:tabular-nums}
 
+  /* ── 화면 기본 가독성 ───────────────── */
   body{font-size:17px; line-height:1.55; -webkit-font-smoothing:antialiased; text-rendering:geometricPrecision}
   .card{border:1px solid #1f2a3a}
-  .card .grid{row-gap:0.5rem}
   .city-line{font-size:1.125rem}
   .title{letter-spacing:.2px}
 
-  /* ── Movement badge - 화면 ───────────────────────── */
-  .badge{border-radius:9999px;padding:.4rem .8rem;line-height:1;font-weight:800;font-size:1rem;border:1px solid rgba(148,163,184,.34);display:inline-flex;gap:.45rem;align-items:center}
+  /* Movement badge (화면) */
+  .badge{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;border-radius:9999px;padding:.4rem .9rem;line-height:1;font-weight:800;font-size:1rem;border:1px solid rgba(148,163,184,.34)}
   .badge-up{background:rgba(239,68,68,.18);color:#fca5a5;border-color:rgba(239,68,68,.5)}
   .badge-down{background:rgba(59,130,246,.18);color:#93c5fd;border-color:rgba(59,130,246,.5)}
   .badge-stay{background:rgba(148,163,184,.14);color:#cbd5e1}
-  /* 아이콘(기호) – 모두 동일 크기(정사각 16px)로 구성 */
-  .ico { width:16px; height:16px; position:relative; display:inline-block; }
-  .ico::before, .ico::after { content:""; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); background:currentColor; border-radius:2px; }
-  .ico.minus::before { width:14px; height:2px; }
-  .ico.plus::before { width:14px; height:2px; }          /* 가로 막대 */
-  .ico.plus::after  { width:2px;  height:14px; }         /* 세로 막대 */
-  .ico.dash::before { width:14px; height:2px; }          /* 0일 때 */
-  /* 0일 때 배지 레이아웃(아이콘+숫자) */
-  .badge.is-grid { display:grid; grid-auto-flow:column; grid-template-columns:16px auto; gap:.45rem; height:26px; padding:4px 10px; }
-  .num0 { display:flex; align-items:center; height:26px; line-height:1; transform:translateY(-0.5px); }
 
-  /* 점수 변화 색 */
+  /* 점수 변화 색상 */
   .score-up { color: #f87171; font-weight: 700; }
   .score-down { color: #60a5fa; font-weight: 700; }
   .score-same { color: #94a3b8; font-weight: 600; }
 
-  /* Top-3 */
+  /* Top-3 강조 */
   .top1{border:1.5px solid rgba(255,215,0,.55);background:linear-gradient(180deg,rgba(255,215,0,.10),transparent 50%),var(--card)}
   .top2{border:1.5px solid rgba(192,192,192,.55);background:linear-gradient(180deg,rgba(192,192,192,.10),transparent 50%),var(--card)}
   .top3{border:1.5px solid rgba(205,127,50,.55);background:linear-gradient(180deg,rgba(205,127,50,.10),transparent 50%),var(--card)}
@@ -50,12 +40,12 @@
   /* 애니메이션 */
   @keyframes popUp{0%{transform:translateY(4px) scale(.98);opacity:0}60%{transform:translateY(-2px) scale(1.02);opacity:1}100%{transform:translateY(0) scale(1)}}
   @keyframes popDown{0%{transform:translateY(-4px) scale(.98);opacity:0}60%{transform:translateY(2px) scale(1.02);opacity:1}100%{transform:translateY(0) scale(1)}}
-  .animate-up{animation:popUp .45s cubic-bezier(.2,.8,.2,1)} .animate-down{animation:popDown .45s cubic-bezier(.2,.8,.2,1)}
+  .animate-up{animation:popUp .45s cubic-bezier(.2,.8,.2,1)}.animate-down{animation:popDown .45s cubic-bezier(.2,.8,.2,1)}
 
   .chip{font-size:.85rem;padding:.4rem .7rem;border-radius:9999px;background:#0c1220;border:1px solid #1f2a3a}
   .chip-region{background:rgba(99,102,241,.14);border-color:rgba(99,102,241,.45);color:#c7d2fe}
 
-  /* ── EXPORT(4:5) 전용(고정 px) ────────────────────── */
+  /* ── 4:5 캡처 전용(고정 px) ───────────────── */
   .ex-root{width:1080px;height:1350px;background:#0e141c;color:#fff;padding:24px;box-sizing:border-box;font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,Apple SD Gothic Neo,Pretendard,sans-serif;-webkit-font-smoothing:antialiased;text-rendering:geometricPrecision}
   .ex-header{display:flex;flex-direction:column;align-items:center;margin-bottom:16px}
   .ex-row{display:flex;align-items:flex-end;justify-content:space-between;width:100%}
@@ -79,15 +69,6 @@
   .ex-badge.up{background:rgba(239,68,68,.18);color:#fca5a5;border-color:rgba(239,68,68,.5)}
   .ex-badge.down{background:rgba(59,130,246,.18);color:#93c5fd;border-color:rgba(59,130,246,.5)}
   .ex-badge.stay{background:rgba(148,163,184,.14);color:#cbd5e1}
-  /* 아이콘 – 캡처용도 동일 크기 */
-  .ex-ico { width:16px; height:16px; position:relative; display:inline-block; }
-  .ex-ico::before, .ex-ico::after { content:""; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); background:currentColor; border-radius:2px; }
-  .ex-ico.minus::before { width:14px; height:2px; }
-  .ex-ico.plus::before  { width:14px; height:2px; }
-  .ex-ico.plus::after   { width:2px;  height:14px; }
-  .ex-ico.dash::before  { width:14px; height:2px; }
-  .ex-badge.ex-grid { display:grid; grid-auto-flow:column; grid-template-columns:16px auto; gap:6px; height:28px; }
-  .ex-num { display:flex; align-items:center; height:28px; line-height:1; transform:translateY(-0.5px); }
 
   .ex-team{display:flex;flex-direction:column}
   .ex-team-name{font-size:34px;font-weight:800}
@@ -168,16 +149,13 @@
   const byRankClass=r=>r===1?'top1':r===2?'top2':r===3?'top3':'';
   const medal=r=>r===1?'<span class="medal-g">GOLD</span>':r===2?'<span class="medal-s">SILVER</span>':r===3?'<span class="medal-b">BRONZE</span>':'';
 
-  /* ===== 랭킹변화 배지(화면): 기호 아이콘 + 숫자 ===== */
+  /* ===== 랭킹변화(화면): 0이면 '-'만, 아니면 +n / -n ===== */
   function movementBadge(m){
     const n=Number(m);
-    if(Number.isNaN(n) || n===0){
-      return `<span class="badge badge-stay is-grid"><i class="ico dash"></i><span class="num num0">0</span></span>`;
-    }
-    if(n>0){
-      return `<span class="badge badge-up animate-up is-grid"><i class="ico plus"></i><span class="num">${n}</span></span>`;
-    }
-    return `<span class="badge badge-down animate-down is-grid"><i class="ico minus"></i><span class="num">${Math.abs(n)}</span></span>`;
+    if(Number.isNaN(n)) return `<span class="badge badge-stay">-</span>`;
+    if(n>0) return `<span class="badge badge-up animate-up">+${n}</span>`;
+    if(n<0) return `<span class="badge badge-down animate-down">-${Math.abs(n)}</span>`;
+    return `<span class="badge badge-stay">-</span>`; // n === 0
   }
 
   /* 점수 변화 */
@@ -199,7 +177,7 @@
   /* 화면 카드 */
   function cardHTML(it){
     const scoreVal = Number(it.score);
-    const scoreText = isNaN(scoreVal) ? (it.score??'') : scoreVal.toFixed(1);
+    const scoreText = isNaN(scoreVal) ? (it.score??'') : scoreVal.toFixed(1); /* 점수 1자리 */
     return `
     <div class="card shadow-smooth rounded-2xl px-5 sm:px-7 py-5 ${byRankClass(it.rank)}">
       <div class="grid grid-cols-12 items-center gap-4">
@@ -226,20 +204,21 @@
     </div>`;
   }
 
-  /* ===== 캡처 카드: 동일 아이콘 사용(+/−/— 크기 동일) ===== */
+  /* ===== 캡처 카드(4:5): 동일 규칙 적용 ===== */
   function exportCardHTML(it){
-    const n=Number(it.move); const isStay = Number.isNaN(n) || n===0;
-    const moveClass = isStay ? 'stay' : (n>0?'up':'down');
+    const n=Number(it.move);
     const scoreText = isNaN(Number(it.score)) ? (it.score??'') : Number(it.score).toFixed(1);
     const diff = it.scoreChange;
-    const diffHTML = (!diff && diff!==0) || Number(diff)===0 ? `<span class="ex-same">-</span>`
+    const diffHTML = (!diff && diff!==0) || Number(diff)===0
+      ? `<span class="ex-same">-</span>`
       : (Number(diff)>0 ? `<span class="ex-up">+${Number(diff)}</span>` : `<span class="ex-down">-${Math.abs(Number(diff))}</span>`);
     const localRank = LOCAL_RANK_MAP ? (LOCAL_RANK_MAP.get(it.team+"||"+(it.city||""))||'') : '';
 
-    const moveHTML = isStay
-      ? `<span class="ex-badge ex-grid ${moveClass}"><i class="ex-ico dash"></i><span class="ex-num num">0</span></span>`
-      : (n>0 ? `<span class="ex-badge ex-grid up"><i class="ex-ico plus"></i><span class="ex-num num">${n}</span></span>`
-             : `<span class="ex-badge ex-grid down"><i class="ex-ico minus"></i><span class="ex-num num">${Math.abs(n)}</span></span>`);
+    let moveHTML='';
+    if(Number.isNaN(n)) moveHTML = `<span class="ex-badge stay">-</span>`;
+    else if(n>0) moveHTML = `<span class="ex-badge up">+${n}</span>`;
+    else if(n<0) moveHTML = `<span class="ex-badge down">-${Math.abs(n)}</span>`;
+    else moveHTML = `<span class="ex-badge stay">-</span>`; // 0
 
     return `
     <div class="ex-card ${byRankClass(it.rank)}">
@@ -273,8 +252,13 @@
     buildLocalRankMap(); renderScreen(); buildExportRanges();
   }
   const renderScreen=()=>{rowCount.textContent=FILTERED.length; list.innerHTML=FILTERED.map(cardHTML).join('');}
-  function buildExportRanges(){const total=FILTERED.length, pageSize=15, pages=Math.ceil(total/pageSize)||1;
-    exportRangeEl.innerHTML=Array.from({length:pages},(_,i)=>{const s=i*pageSize+1,e=Math.min((i+1)*pageSize,total);return `<option value="${s}-${e}">${s}–${e}위</option>`}).join('');}
+  function buildExportRanges(){
+    const total=FILTERED.length, pageSize=15, pages=Math.ceil(total/pageSize)||1;
+    exportRangeEl.innerHTML=Array.from({length:pages},(_,i)=>{
+      const s=i*pageSize+1,e=Math.min((i+1)*pageSize,total);
+      return `<option value="${s}-${e}">${s}–${e}위</option>`;
+    }).join('');
+  }
 
   async function loadLocal(){
     statusEl.classList.remove('hidden'); errorEl.classList.add('hidden'); errorEl.textContent='';
