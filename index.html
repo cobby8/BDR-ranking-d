@@ -5,9 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>BDR 랭킹 - 일반부</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- SheetJS (엑셀 파서) -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
   <meta name="color-scheme" content="dark" />
   <style>
-    /* Theme */
     .surface { background: #0e141c; }
     .card { background: #131a24; }
     .muted { color: #94a3b8; }
@@ -44,6 +45,14 @@
     }
     .animate-up   { animation: popUp .45s cubic-bezier(.2,.8,.2,1); }
     .animate-down { animation: popDown .45s cubic-bezier(.2,.8,.2,1); }
+
+    /* Loader */
+    .spinner {
+      width: 24px; height: 24px; border-radius: 9999px;
+      border: 3px solid #1f2a3a; border-top-color: #60a5fa;
+      animation: spin 0.9s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg);} }
   </style>
 </head>
 <body class="min-h-screen surface text-white antialiased">
@@ -64,12 +73,19 @@
       </select>
     </div>
 
+    <!-- Loading / Error -->
+    <div id="status" class="flex items-center gap-3 text-sm muted mb-3">
+      <div class="spinner" aria-hidden="true"></div>
+      <span>데이터 불러오는 중…</span>
+    </div>
+    <div id="error" class="hidden text-sm text-red-400 mb-3"></div>
+
     <!-- List -->
     <div id="list" class="space-y-2"></div>
 
     <!-- Pager -->
     <div class="mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-      <div class="rounded-full px-3 py-1 chip bg-[#0c1220] border border-[#1f2a3a] text-xs">페이지 <span id="pageNow">1</span> / <span id="pageTotal">1</span></div>
+      <div class="rounded-full px-3 py-1 bg-[#0c1220] border border-[#1f2a3a] text-xs">페이지 <span id="pageNow">1</span> / <span id="pageTotal">1</span></div>
       <div class="muted text-sm">총 <span id="rowCount"></span>개 팀</div>
       <div class="flex gap-2">
         <button id="prev" class="px-4 py-2 rounded-lg bg-[#0b111a] border border-[#1f2a3a] disabled:opacity-50">이전</button>
@@ -79,80 +95,51 @@
   </div>
 
   <script>
-    /* ====== CONFIG: 데이터 & 컬럼 매핑 ======
-       - 아래 rows 배열에 데이터가 들어갑니다.
-       - 실제 컬럼명이 다르면 map의 값을 바꿔주세요.
-    */
-    const CONFIG = {
-      map: { rank: "랭킹", team: "팀", city: "지역", score: "점수", move: "랭킹 변화" },
-      page_size: 20,
-      rows: [
-        /* 예시) { "랭킹": 1, "팀": "아울스(OWLS)", "지역": "경기", "점수": 1621.88, "랭킹 변화": 0 }, ... */
-        /* 업로드하신 시트의 데이터를 여기에 그대로 넣어두세요. 
-           이미 제가 만들어 드린 파일(bdr_ranking_logo_header_strong_move.html)을 열어서
-           CONFIG.rows 전체를 복사-붙여넣기 하시면 가장 간단합니다. */
-      ]
+    // ========= 1) GitHub RAW XLSX 경로만 바꾸면 동작 =========
+    // 예) https://raw.githubusercontent.com/<owner>/<repo>/<branch>/팀랭킹_20250813_1.xlsx
+    const GITHUB_XLSX_URL = "https://github.com/cobby8/BDR-ranking/blob/main/%ED%8C%80%EB%9E%AD%ED%82%B9_20250813_1.xlsx";
+
+    // ========= 2) 컬럼 자동 매핑 후보 (시트 헤더 기준) =========
+    const MAP_CANDIDATES = {
+      rank:  ["랭킹","순위","rank"],
+      team:  ["팀","팀명","name","team","클럽"],
+      city:  ["지역","연고","도시","city","location"],
+      score: ["점수","score","포인트","point"],
+      move:  ["랭킹 변화","증감","변동","delta","updown","전주대비","전월대비"]
     };
 
-    // ---- 시간표기
-    function formatDate(d) {
-      const z = (n)=> String(n).padStart(2,'0');
-      return `${d.getFullYear()}년 ${z(d.getMonth()+1)}월 ${z(d.getDate())}일`;
-    }
-    document.getElementById('lastUpdated').textContent = formatDate(new Date());
+    // ========= 내부 상태 =========
+    let BASE = [];   // 표준화된 데이터
+    let FILTERED = [];
+    let PAGE = 1;
+    const PAGE_SIZE = 20;
 
-    const map = CONFIG.map;
-    const colRank  = map.rank;
-    const colTeam  = map.team;
-    const colCity  = map.city;
-    const colScore = map.score;
-    const colMove  = map.move;
-
+    // ========= 요소 참조 =========
     const list = document.getElementById('list');
     const search = document.getElementById('search');
     const region = document.getElementById('region');
     const pageNow = document.getElementById('pageNow');
     const pageTotal = document.getElementById('pageTotal');
     const rowCount = document.getElementById('rowCount');
-    const PAGE_SIZE = CONFIG.page_size || 20;
+    const statusEl = document.getElementById('status');
+    const errorEl = document.getElementById('error');
 
-    // 지역 옵션 구성
-    const regions = Array.from(new Set(CONFIG.rows.map(r => (r[colCity] ?? '')).filter(Boolean))).sort();
-    regions.forEach(v => {
-      const opt = document.createElement('option');
-      opt.value = v; opt.textContent = v;
-      region.appendChild(opt);
-    });
+    // ========= 유틸 =========
+    function formatDate(d) {
+      const z = (n)=> String(n).padStart(2,'0');
+      return `${d.getFullYear()}년 ${z(d.getMonth()+1)}월 ${z(d.getDate())}일`;
+    }
+    document.getElementById('lastUpdated').textContent = formatDate(new Date());
 
-    // 표준화 데이터
-    const base = CONFIG.rows.map((r, i) => ({
-      rank:  r[colRank]  ?? (i+1),
-      team:  r[colTeam]  ?? '',
-      city:  r[colCity]  ?? '',
-      score: r[colScore] ?? '',
-      move:  r[colMove]  ?? 0,
-      raw:   r
-    }));
-
-    let filtered = [...base];
-    let page = 1;
-
-    // 검색/필터
-    function applyFilter() {
-      const q = (search.value || '').toLowerCase();
-      const reg = region.value;
-      filtered = base.filter(item => {
-        const hay = (item.team + ' ' + item.city).toLowerCase();
-        const okQ = !q || hay.includes(q);
-        const okR = !reg || item.city === reg;
-        return okQ && okR;
-      });
-      page = 1;
-      render();
+    function pickColumn(headerKeys, candidates) {
+      for (const cand of candidates) {
+        const found = headerKeys.find(k => (k || "").toString().toLowerCase().includes(cand.toLowerCase()));
+        if (found) return found;
+      }
+      return null;
     }
 
-    // 상위 3팀 클래스 & 메달 텍스트
-    function top3Class(rank) {
+    function byRankClass(rank) {
       if (rank === 1) return 'top1';
       if (rank === 2) return 'top2';
       if (rank === 3) return 'top3';
@@ -165,10 +152,9 @@
       return '';
     }
 
-    // 랭킹 변동 배지 (툴팁/애니메이션 포함)
     function movementBadge(move) {
       const n = Number(move);
-      if (Number.isNaN(n)) return `<span class="badge badge-stay" title="지난 주 대비 정보 없음">${move}</span>`;
+      if (Number.isNaN(n)) return `<span class="badge badge-stay" title="지난 주 대비 정보 없음">${move ?? "—"}</span>`;
       if (n > 0) {
         return `<span class="badge badge-up animate-up" title="지난 주 대비 +${n}">
           <svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -189,18 +175,31 @@
       return `<span class="badge badge-stay" title="지난 주 대비 0">— 0</span>`;
     }
 
-    function render() {
-      const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-      if (page > totalPages) page = totalPages;
-      pageNow.textContent = page;
-      pageTotal.textContent = totalPages;
-      rowCount.textContent = filtered.length;
+    function applyFilter() {
+      const q = (search.value || '').toLowerCase();
+      const reg = region.value;
+      FILTERED = BASE.filter(item => {
+        const hay = (item.team + ' ' + item.city).toLowerCase();
+        const okQ = !q || hay.includes(q);
+        const okR = !reg || item.city === reg;
+        return okQ && okR;
+      });
+      PAGE = 1;
+      render();
+    }
 
-      const start = (page - 1) * PAGE_SIZE;
-      const slice = filtered.slice(start, start + PAGE_SIZE);
+    function render() {
+      const totalPages = Math.max(1, Math.ceil(FILTERED.length / PAGE_SIZE));
+      if (PAGE > totalPages) PAGE = totalPages;
+      pageNow.textContent = PAGE;
+      pageTotal.textContent = totalPages;
+      rowCount.textContent = FILTERED.length;
+
+      const start = (PAGE - 1) * PAGE_SIZE;
+      const slice = FILTERED.slice(start, start + PAGE_SIZE);
 
       list.innerHTML = slice.map(item => `
-        <div class="card shadow-smooth rounded-2xl border border-[#1f2a3a] px-4 sm:px-6 py-4 ${top3Class(item.rank)}">
+        <div class="card shadow-smooth rounded-2xl border border-[#1f2a3a] px-4 sm:px-6 py-4 ${byRankClass(item.rank)}">
           <div class="grid grid-cols-12 items-center gap-3">
             <div class="col-span-2 sm:col-span-1 flex flex-col items-start">
               <div class="text-2xl sm:text-3xl font-extrabold num">${item.rank}</div>
@@ -221,22 +220,71 @@
         </div>
       `).join('');
 
-      document.getElementById('prev').disabled = page <= 1;
-      document.getElementById('next').disabled = page >= totalPages;
+      document.getElementById('prev').disabled = PAGE <= 1;
+      document.getElementById('next').disabled = PAGE >= totalPages;
     }
 
     // 이벤트
     search.addEventListener('input', applyFilter);
     region.addEventListener('change', applyFilter);
-    document.getElementById('prev').addEventListener('click', () => { page = Math.max(1, page - 1); render(); });
+    document.getElementById('prev').addEventListener('click', () => { PAGE = Math.max(1, PAGE - 1); render(); });
     document.getElementById('next').addEventListener('click', () => {
-      const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-      page = Math.min(totalPages, page + 1);
+      const totalPages = Math.max(1, Math.ceil(FILTERED.length / PAGE_SIZE));
+      PAGE = Math.min(totalPages, PAGE + 1);
       render();
     });
 
-    // 최초 렌더
-    render();
+    // ========= 3) GitHub에서 엑셀 불러와 파싱 =========
+    async function loadFromGithub() {
+      try {
+        const res = await fetch(GITHUB_XLSX_URL, { cache: "no-store" });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const ab = await res.arrayBuffer();
+        const wb = XLSX.read(new Uint8Array(ab), { type: "array" });
+        const sheetName = wb.SheetNames[0];
+        const ws = wb.Sheets[sheetName];
+
+        // 헤더 키 파악
+        const rows = XLSX.utils.sheet_to_json(ws, { defval: "", raw: true });
+        const headerKeys = Object.keys(rows[0] || {});
+        // 컬럼 선택
+        const cRank  = pickColumn(headerKeys, MAP_CANDIDATES.rank);
+        const cTeam  = pickColumn(headerKeys, MAP_CANDIDATES.team);
+        const cCity  = pickColumn(headerKeys, MAP_CANDIDATES.city);
+        const cScore = pickColumn(headerKeys, MAP_CANDIDATES.score);
+        const cMove  = pickColumn(headerKeys, MAP_CANDIDATES.move);
+
+        // 지역 옵션 구성
+        const regionSet = new Set();
+        BASE = rows.map((r, i) => {
+          const obj = {
+            rank:  cRank  ? Number(r[cRank])  || (i+1) : (i+1),
+            team:  cTeam  ? r[cTeam]  : "",
+            city:  cCity  ? r[cCity]  : "",
+            score: cScore ? r[cScore] : "",
+            move:  cMove  ? (r[cMove] === "" ? 0 : r[cMove]) : 0,
+            raw:   r
+          };
+          if (obj.city) regionSet.add(obj.city);
+          return obj;
+        });
+
+        // 지역 드롭다운 채우기
+        region.innerHTML = '<option value="">전체 지역</option>' + Array.from(regionSet).sort().map(v => `<option value="${v}">${v}</option>`).join('');
+
+        statusEl.classList.add('hidden');
+        FILTERED = [...BASE];
+        render();
+      } catch (err) {
+        statusEl.classList.add('hidden');
+        errorEl.classList.remove('hidden');
+        errorEl.textContent = `데이터 로드 오류: ${err.message}. GitHub "Raw" 링크(Git LFS 아님)와 파일 공개 여부를 확인하세요.`;
+      }
+    }
+
+    // 시작!
+    loadFromGithub();
+
   </script>
 </body>
 </html>
