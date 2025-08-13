@@ -63,6 +63,7 @@
   </div>
   <div id="error" class="hidden text-sm text-red-400 mb-3"></div>
 
+  <!-- 전체 리스트 (스크롤 탐색) -->
   <div id="list" class="space-y-2"></div>
 
   <div class="mt-6 flex items-center justify-end">
@@ -71,10 +72,11 @@
 </div>
 
 <script>
+  // 같은 폴더의 엑셀을 상대경로로 로드 (GitHub Pages 권장)
   const LOCAL_XLSX_URL = "./%ED%8C%80%EB%9E%AD%ED%82%B9_20250813_1.xlsx";
 
   let BASE=[], FILTERED=[];
-  let LOCAL_RANK_MAP=null;
+  let LOCAL_RANK_MAP=null; // 지역별 랭킹(필터 적용 시)
   const list=document.getElementById('list'), search=document.getElementById('search'), region=document.getElementById('region');
   const rowCount=document.getElementById('rowCount');
   const statusEl=document.getElementById('status'), errorEl=document.getElementById('error');
@@ -97,10 +99,10 @@
 
   function movementBadge(m){
     const n=Number(m);
-    if(Number.isNaN(n)) return `<span class="badge badge-stay">— 0</span>`;
-    if(n>0) return `<span class="badge badge-up animate-up">+${n}</span>`;
-    if(n<0) return `<span class="badge badge-down animate-down">-${Math.abs(n)}</span>`;
-    return `<span class="badge badge-stay">— 0</span>`;
+    if(Number.isNaN(n)) return `<span class="badge badge-stay" title="지난 주 대비 0">— 0</span>`;
+    if(n>0) return `<span class="badge badge-up animate-up" title="지난 주 대비 +${n}">+${n}</span>`;
+    if(n<0) return `<span class="badge badge-down animate-down" title="지난 주 대비 -${Math.abs(n)}">-${Math.abs(n)}</span>`;
+    return `<span class="badge badge-stay" title="지난 주 대비 0">— 0</span>`;
   }
 
   function scoreChangeBadge(val){
@@ -115,6 +117,7 @@
   function buildLocalRankMap(){
     const reg=region.value;
     if(!reg){ LOCAL_RANK_MAP=null; return; }
+    // 현재 필터된 목록을 'rank' 오름차순으로 정렬하여 지역 내 순위 부여
     const subset = FILTERED.slice().sort((a,b)=> (a.rank??Infinity)-(b.rank??Infinity));
     const map = new Map();
     subset.forEach((item, idx) => {
@@ -128,7 +131,7 @@
     const key = team + "||" + (city || "");
     const n = LOCAL_RANK_MAP.get(key);
     if(!n) return '';
-    return `<span class="chip chip-region">지역 랭킹 ${n}위</span>`;
+    return `<span class="chip chip-region" title="현재 선택한 지역 내 순위">지역 랭킹 ${n}위</span>`;
   }
 
   function applyFilter(){
@@ -152,23 +155,25 @@
             <div class="text-[10px] mt-1">${medalSpan(it.rank)}</div>
           </div>
 
-          <!-- 랭킹변화/지역랭킹 -->
+          <!-- 랭킹변화(위) + 지역랭킹(아래) -->
           <div class="col-span-3 sm:col-span-3 flex flex-col items-start gap-1">
             ${movementBadge(it.move)}
             ${regionalBadge(it.team, it.city)}
           </div>
 
           <!-- 팀/지역 -->
-          <div class="col-span-4 sm:col-span-4">
+          <div class="col-span-4 sm:col-span-5">
             <div class="text-lg sm:text-xl font-semibold">${it.team}</div>
             <div class="city-line muted mt-0.5">${it.city || ''}</div>
           </div>
 
-          <!-- 점수 / 점수변화 -->
-          <div class="col-span-3 sm:col-span-4 text-right">
+          <!-- 점수 / 점수변화(오른쪽 '점' 함께, 30% 확대) -->
+          <div class="col-span-3 sm:col-span-3 text-right">
             <div class="text-2xl sm:text-3xl font-extrabold accent num">${(it.score??'').toString()}</div>
-            <div class="mt-1">${scoreChangeBadge(it.scoreChange)}</div>
-            <div class="text-[10px] muted">점</div>
+            <div class="mt-1 flex justify-end items-baseline gap-1">
+              <span class="text-lg">${scoreChangeBadge(it.scoreChange)}</span>
+              <span class="text-lg muted">점</span>
+            </div>
           </div>
         </div>
       </div>
@@ -222,7 +227,7 @@
       render();
     }catch(err){
       statusEl.classList.add('hidden'); errorEl.classList.remove('hidden');
-      errorEl.textContent=`데이터 로드 오류: ${err.message}.`;
+      errorEl.textContent=`데이터 로드 오류: ${err.message}. 파일이 같은 폴더에 있는지, 파일명이 정확한지 확인하세요.`;
     }
   }
 
