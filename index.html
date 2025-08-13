@@ -48,8 +48,7 @@
   .chip{font-size:.85rem;padding:.4rem .7rem;border-radius:9999px;background:#0c1220;border:1px solid #1f2a3a}
   .chip-region{background:rgba(99,102,241,.14);border-color:rgba(99,102,241,.45);color:#c7d2fe}
 
-  /* ── 4:5 캡처 전용 스타일 ─────────────────────────────── */
-  /* 캡처 시엔 약간 더 크게 보이도록 배율을 살짝 올림 */
+  /* ── 4:5 캡처 전용 ─────────────────────────────── */
   .exporting { font-size:18px; }
   .exporting .title{font-size:2rem}
   .exporting .rank-num{font-size:2.2rem}
@@ -60,8 +59,8 @@
 </head>
 <body class="min-h-screen surface text-white antialiased">
 <div class="max-w-6xl mx-auto px-4 py-6">
-  <!-- 캡처 대상: #capture (헤더+필터+리스트 전체) -->
-  <div id="capture" class="space-y-4">
+  <!-- 화면 표시용(검색/필터/안내 포함) -->
+  <div id="screenRoot" class="space-y-4">
     <!-- 헤더: 로고/제목 중앙, 날짜는 제목 오른쪽(하단 정렬) -->
     <div class="flex flex-col items-center w-full">
       <img src="BDR(배경없음).png" alt="BDR Logo" class="h-20 object-contain mb-2" crossOrigin="anonymous">
@@ -71,24 +70,32 @@
       </div>
     </div>
 
-    <!-- 컨트롤 바 -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-      <input id="search" type="search" placeholder="팀명/지역 검색…" class="col-span-2 rounded-xl bg-[#0b111a] border border-[#1f2a3a] px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500" />
-      <select id="region" class="rounded-xl bg-[#0b111a] border border-[#1f2a3a] px-4 py-3">
+    <!-- 컨트롤 바 (화면 전용) -->
+    <div class="grid grid-cols-1 sm:grid-cols-5 gap-3">
+      <input id="search" type="search" placeholder="팀명/지역 검색…" class="sm:col-span-2 rounded-xl bg-[#0b111a] border border-[#1f2a3a] px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500" />
+      <select id="region" class="sm:col-span-1 rounded-xl bg-[#0b111a] border border-[#1f2a3a] px-4 py-3">
         <option value="">전체 지역</option>
       </select>
-    </div>
-    <p class="text-sm text-indigo-200/80 text-right -mt-1">※ 지역필터를 적용하면 지역별 랭킹을 보실 수 있습니다.</p>
 
-    <!-- 리스트 -->
-    <div id="list" class="space-y-3"></div>
-
-    <div class="flex items-center justify-between">
-      <div class="muted text-sm">총 <span id="rowCount"></span>개 팀</div>
-      <!-- 4:5 이미지 다운로드 버튼 -->
-      <button id="btnExport" class="rounded-xl bg-[#0b111a] border border-[#1f2a3a] px-4 py-2 hover:bg-[#131a24]">
+      <!-- 내보내기 범위 선택 & 버튼 (화면에서만 보임, 캡처엔 제외) -->
+      <select id="exportRange" class="sm:col-span-1 rounded-xl bg-[#0b111a] border border-[#1f2a3a] px-4 py-3">
+        <option value="1-15">1–15위</option>
+      </select>
+      <button id="btnExport" class="sm:col-span-1 rounded-xl bg-[#0b111a] border border-[#1f2a3a] px-4 py-3 hover:bg-[#131a24]">
         4:5 이미지 다운로드
       </button>
+    </div>
+
+    <!-- 안내 문구 (화면 전용) -->
+    <p class="text-sm text-indigo-200/80 text-right -mt-1">
+      ※ 지역필터를 적용하면 지역별 랭킹을 보실 수 있습니다.
+    </p>
+
+    <!-- 리스트(화면 표시용) -->
+    <div id="list" class="space-y-3"></div>
+
+    <div class="flex items-center justify-end">
+      <div class="muted text-sm">총 <span id="rowCount"></span>개 팀</div>
     </div>
   </div>
 
@@ -101,20 +108,17 @@
 </div>
 
 <script>
-  /* ========== 설정 ==========
-     같은 폴더의 엑셀을 상대경로로 로드 (GitHub Pages 권장)
-  ===================================== */
+  /* ========== 설정 ========== */
   const LOCAL_XLSX_URL = "./%ED%8C%80%EB%9E%AD%ED%82%B9_20250813_1.xlsx";
 
-  /* ========== 상태 ==========
-  ===================================== */
+  /* ========== 상태 ========== */
   let BASE=[], FILTERED=[], LOCAL_RANK_MAP=null;
   const list=document.getElementById('list'), search=document.getElementById('search'), region=document.getElementById('region');
   const rowCount=document.getElementById('rowCount'), statusEl=document.getElementById('status'), errorEl=document.getElementById('error');
   const lastUpdated=document.getElementById('lastUpdated');
+  const exportRangeEl=document.getElementById('exportRange');
 
-  /* ========== 유틸 ==========
-  ===================================== */
+  /* ========== 유틸 ========== */
   function formatDate(d){const z=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}년 ${z(d.getMonth()+1)}월 ${z(d.getDate())}일`;}
   lastUpdated.textContent=formatDate(new Date());
 
@@ -146,8 +150,7 @@
     return `<span class="score-same">-</span>`;
   }
 
-  /* ========== 지역 랭킹 계산 ==========
-  ===================================== */
+  /* ========== 지역 랭킹 ========== */
   function buildLocalRankMap(){
     const reg=region.value;
     if(!reg){ LOCAL_RANK_MAP=null; return; }
@@ -167,8 +170,44 @@
     return `<span class="chip chip-region" title="현재 선택한 지역 내 순위">지역 랭킹 ${n}위</span>`;
   }
 
-  /* ========== 필터 & 렌더 ==========
-  ===================================== */
+  /* ========== 카드 HTML ========== */
+  function cardHTML(it){
+    const scoreVal = Number(it.score);
+    const scoreText = isNaN(scoreVal) ? (it.score??'') : scoreVal.toFixed(1); // 점수: 소수점 1자리
+    return `
+    <div class="card shadow-smooth rounded-2xl px-5 sm:px-7 py-5 ${byRankClass(it.rank)}">
+      <div class="grid grid-cols-12 items-center gap-4">
+        <!-- 순위 -->
+        <div class="col-span-2 sm:col-span-1 flex flex-col items-start">
+          <div class="rank-num text-3xl sm:text-4xl font-extrabold num">${it.rank}</div>
+          <div class="text-[11px] mt-1">${medalSpan(it.rank)}</div>
+        </div>
+
+        <!-- 랭킹변화/지역랭킹 -->
+        <div class="col-span-3 sm:col-span-3 flex flex-col items-start gap-1.5">
+          ${movementBadge(it.move)}
+          ${regionalBadge(it.team, it.city)}
+        </div>
+
+        <!-- 팀/지역 -->
+        <div class="col-span-4 sm:col-span-5">
+          <div class="team-name text-2xl font-semibold">${it.team}</div>
+          <div class="city-line muted mt-0.5">${it.city || ''}</div>
+        </div>
+
+        <!-- 점수 / 점수변화 -->
+        <div class="col-span-3 sm:col-span-3 text-right">
+          <div class="score-val text-3xl sm:text-4xl font-extrabold accent num">${scoreText}</div>
+          <div class="mt-1.5 flex justify-end items-baseline gap-1.5">
+            <span class="text-xl">${scoreChangeBadge(it.scoreChange)}</span>
+            <span class="text-xl muted">점</span>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  /* ========== 화면 렌더 ========== */
   function applyFilter(){
     const q=(search.value||'').toLowerCase(), reg=region.value;
     FILTERED=BASE.filter(it=>{
@@ -176,50 +215,30 @@
       return (!q||hay.includes(q))&&(!reg||it.city===reg);
     });
     buildLocalRankMap();
-    render();
+    renderScreen();
+    buildExportRanges(); // 팀 수 변동 시 내보내기 범위 갱신
   }
 
-  function render(){
+  function renderScreen(){
     rowCount.textContent = FILTERED.length;
-    list.innerHTML = FILTERED.map(it => {
-      const scoreVal = Number(it.score);
-      const scoreText = isNaN(scoreVal) ? (it.score??'') : scoreVal.toFixed(1); // 점수: 소수점 1자리
-      return `
-      <div class="card shadow-smooth rounded-2xl px-5 sm:px-7 py-5 ${byRankClass(it.rank)}">
-        <div class="grid grid-cols-12 items-center gap-4">
-          <!-- 순위 -->
-          <div class="col-span-2 sm:col-span-1 flex flex-col items-start">
-            <div class="rank-num text-3xl sm:text-4xl font-extrabold num">${it.rank}</div>
-            <div class="text-[11px] mt-1">${medalSpan(it.rank)}</div>
-          </div>
-
-          <!-- 랭킹변화/지역랭킹 -->
-          <div class="col-span-3 sm:col-span-3 flex flex-col items-start gap-1.5">
-            ${movementBadge(it.move)}
-            ${regionalBadge(it.team, it.city)}
-          </div>
-
-          <!-- 팀/지역 -->
-          <div class="col-span-4 sm:col-span-5">
-            <div class="team-name text-2xl font-semibold">${it.team}</div>
-            <div class="city-line muted mt-0.5">${it.city || ''}</div>
-          </div>
-
-          <!-- 점수 / 점수변화 -->
-          <div class="col-span-3 sm:col-span-3 text-right">
-            <div class="score-val text-3xl sm:text-4xl font-extrabold accent num">${scoreText}</div>
-            <div class="mt-1.5 flex justify-end items-baseline gap-1.5">
-              <span class="text-xl">${scoreChangeBadge(it.scoreChange)}</span>
-              <span class="text-xl muted">점</span>
-            </div>
-          </div>
-        </div>
-      </div>`;
-    }).join('');
+    list.innerHTML = FILTERED.map(cardHTML).join('');
   }
 
-  /* ========== 데이터 로드 ==========
-  ===================================== */
+  /* ========== 내보내기 범위 구성(15팀 단위) ========== */
+  function buildExportRanges(){
+    const total = FILTERED.length;
+    const pageSize = 15;
+    const pages = Math.ceil(total / pageSize) || 1;
+    const opts = [];
+    for(let i=0;i<pages;i++){
+      const start = i*pageSize + 1;
+      const end = Math.min((i+1)*pageSize, total);
+      opts.push({label:`${start}–${end}위`, value:`${start}-${end}`});
+    }
+    exportRangeEl.innerHTML = opts.map(o=>`<option value="${o.value}">${o.label}</option>`).join('');
+  }
+
+  /* ========== 데이터 로드 ========== */
   async function loadLocal(){
     statusEl.classList.remove('hidden'); errorEl.classList.add('hidden'); errorEl.textContent='';
     try{
@@ -249,7 +268,7 @@
           city:MAP.city?r[MAP.city]:'',
           score:MAP.score?r[MAP.score]:'',
           move:MAP.move?(r[MAP.move]===''?0:r[MAP.move]):0,
-          scoreChange:MAP.scoreChange?(r[MAP.scoreChange] || 0):null,
+          scoreChange:MAP.scoreChange?(r[MAP[ 'scoreChange' ]] || 0):null,
           raw:r
         };
         if(obj.city) regionSet.add(obj.city);
@@ -262,7 +281,9 @@
       statusEl.classList.add('hidden');
       FILTERED=[...BASE];
       buildLocalRankMap();
-      render();
+      renderScreen();
+      buildExportRanges();
+
       search.addEventListener('input',applyFilter);
       region.addEventListener('change',applyFilter);
     }catch(err){
@@ -270,51 +291,61 @@
       errorEl.textContent=`데이터 로드 오류: ${err.message}. 파일이 같은 폴더에 있는지, 파일명이 정확한지 확인하세요.`;
     }
   }
-
   loadLocal();
 
-  /* ========== 4:5 이미지 다운로드 ==========
-     - 1080x1350 캔버스
-     - 현재 필터/검색 상태 그대로 캡처
-     - 로고 CORS 위해 crossOrigin 설정(동일 출처면 OK)
-  ===================================== */
+  /* ========== 4:5 이미지 다운로드 (검색/필터/문구 제외, 15팀 범위 선택) ========== */
   document.getElementById('btnExport').addEventListener('click', async ()=>{
-    const target = document.getElementById('capture');
+    // 선택된 범위 파싱
+    const [s,e] = (exportRangeEl.value || '1-15').split('-').map(n=>parseInt(n,10));
+    const startIdx = Math.max(0, (s||1)-1);
+    const endIdx = Math.min(FILTERED.length, (e||15));
+    const slice = FILTERED.slice(startIdx, endIdx);
 
-    // 4:5 프레임 크기
+    // 4:5 프레임
     const W = 1080, H = 1350;
 
-    // 레이아웃 확대(캡처 전용 클래스 부여)
-    target.classList.add('exporting');
+    // 오프스크린 캡처 스테이지 생성(검색/필터/문구 제외)
+    const stage = document.createElement('div');
+    stage.id = 'exportStage';
+    stage.className = 'exporting';
+    stage.setAttribute('style', `width:${W}px; min-height:${H}px; max-width:${W}px; margin:0 auto; background:#0e141c; padding:24px;`);
+    stage.innerHTML = `
+      <div class="flex flex-col items-center w-full">
+        <img src="BDR(배경없음).png" alt="BDR Logo" class="h-20 object-contain mb-2" crossOrigin="anonymous">
+        <div class="flex items-end justify-between w-full">
+          <h1 class="title text-3xl font-bold">BDR 랭킹 - 일반부</h1>
+          <span class="text-lg font-semibold muted">${lastUpdated.textContent}</span>
+        </div>
+      </div>
+      <div id="exportList" class="space-y-3 mt-4"></div>
+    `;
+    document.body.appendChild(stage);
 
-    // html2canvas 옵션
-    const opts = {
-      backgroundColor: '#0e141c',
-      useCORS: true,
-      allowTaint: false,
-      width: W,
-      height: H,
-      windowWidth: target.scrollWidth,
-      windowHeight: target.scrollHeight,
-      scale: 2 // 더 선명하게
-    };
+    // 슬라이스 렌더링
+    const exportList = stage.querySelector('#exportList');
+    exportList.innerHTML = slice.map(cardHTML).join('');
 
-    // 캡처 범위를 4:5에 맞도록 일시적으로 스타일 고정
-    const prevStyle = target.getAttribute('style') || '';
-    target.setAttribute('style', `${prevStyle}; width:${W}px; min-height:${H}px; max-width:${W}px; overflow:hidden; margin:0 auto;`);
-
+    // 캡처
     try{
-      const canvas = await html2canvas(target, opts);
+      const canvas = await html2canvas(stage, {
+        backgroundColor: '#0e141c',
+        useCORS: true,
+        allowTaint: false,
+        width: W,
+        height: H,
+        windowWidth: W,
+        windowHeight: H,
+        scale: 2
+      });
       const link = document.createElement('a');
-      link.download = `bdr_ranking_${new Date().toISOString().slice(0,10)}.png`;
+      const rangeLabel = `${s||1}-${e||15}`;
+      link.download = `bdr_ranking_${rangeLabel}_${new Date().toISOString().slice(0,10)}.png`;
       link.href = canvas.toDataURL('image/png');
       link.click();
     }catch(e){
       alert('이미지 저장 중 오류가 발생했습니다: ' + e.message);
     }finally{
-      // 스타일/클래스 복원
-      target.setAttribute('style', prevStyle);
-      target.classList.remove('exporting');
+      stage.remove();
     }
   });
 </script>
