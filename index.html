@@ -59,8 +59,8 @@
 </div>
 
 <script>
-  // ✅ jsDelivr CDN 경로 (한글 파일명 OK)
-  const GITHUB_XLSX_URL = "https://cdn.jsdelivr.net/gh/cobby8/BDR-ranking@main/%ED%8C%80%EB%9E%AD%ED%82%B9_20250813_1.xlsx";
+  // ✅ 같은 폴더에 있는 엑셀 파일을 상대경로로 로드 (CORS 없음)
+  const LOCAL_XLSX_URL = "./%ED%8C%80%EB%9E%AD%ED%82%B9_20250813_1.xlsx";
 
   let BASE=[], FILTERED=[]; let PAGE=1; const PAGE_SIZE=20;
   const list=document.getElementById('list'), search=document.getElementById('search'), region=document.getElementById('region');
@@ -76,7 +76,7 @@
   function medalSpan(r){return r===1?'<span class="medal medal-g">GOLD</span>':r===2?'<span class="medal medal-s">SILVER</span>':r===3?'<span class="medal medal-b">BRONZE</span>':''}
   function movementBadge(m){const n=Number(m); if(Number.isNaN(n)) return `<span class="badge badge-stay" title="지난 주 대비 정보 없음">${m??"—"}</span>`;
     if(n>0) return `<span class="badge badge-up animate-up" title="지난 주 대비 +${n}"><svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M7 17a1 1 0 0 1-.707-1.707l9-9H10a1 1 0 1 1 0-2h9a1 1 0 0 1 1 1v9a1 1 0 1 1-2 0v-5.293l-9 9A.997.997 0 0 1 7 17z"/></svg>+${n}</span>`;
-    if(n<0){const v=Math.abs(n); return `<span class="badge badge-down animate-down" title="지난 주 대비 -${v}"><svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M17 7a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-9a1 1 0 1 1 0-2h5.293l-9-9A1 1 0 1 1 5.707 6.293l9 9V10a1 1 0 0 1 2 0V7z"/></svg>-${v}</span>`}
+    if(n<0){const v=Math.abs(n); return `<span class="badge badge-down animate-down" title="지난 주 대비 -${v}"><svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M17 7a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-9a1 1 0  1 1 0-2h5.293l-9-9A1 1 0 1 1 5.707 6.293l9 9V10a1 1 0 0 1 2 0V7z"/></svg>-${v}</span>`}
     return `<span class="badge badge-stay" title="지난 주 대비 0">— 0</span>`}
 
   function applyFilter(){const q=(search.value||'').toLowerCase(), reg=region.value;
@@ -107,39 +107,54 @@
     document.getElementById('prev').disabled=PAGE<=1; document.getElementById('next').disabled=PAGE>=total
   }
 
-  search.addEventListener('input',applyFilter); region.addEventListener('change',applyFilter);
-  document.getElementById('prev').addEventListener('click',()=>{PAGE=Math.max(1,PAGE-1);render()});
-  document.getElementById('next').addEventListener('click',()=>{const t=Math.max(1,Math.ceil(FILTERED.length/PAGE_SIZE)); PAGE=Math.min(t,PAGE+1);render()});
-
-  async function loadFromGithub(){
+  async function loadLocal(){
     statusEl.classList.remove('hidden'); errorEl.classList.add('hidden'); errorEl.textContent='';
     try{
-      const res=await fetch(GITHUB_XLSX_URL,{cache:'no-store',mode:'cors',referrerPolicy:'no-referrer'});
+      const res=await fetch(LOCAL_XLSX_URL,{cache:'no-store'}); // 같은 출처이므로 CORS 문제 없음
       if(!res.ok) throw new Error(`HTTP ${res.status}`);
       const ab=await res.arrayBuffer();
       const wb=XLSX.read(new Uint8Array(ab),{type:'array'});
       const ws=wb.Sheets[wb.SheetNames[0]];
       const rows=XLSX.utils.sheet_to_json(ws,{defval:'',raw:true});
       if(!rows.length) throw new Error('시트가 비어있습니다.');
+
       const headerKeys=Object.keys(rows[0]);
-      const cRank =pickColumn(headerKeys,MAP_CANDIDATES.rank);
-      const cTeam =pickColumn(headerKeys,MAP_CANDIDATES.team);
-      const cCity =pickColumn(headerKeys,MAP_CANDIDATES.city);
-      const cScore=pickColumn(headerKeys,MAP_CANDIDATES.score);
-      const cMove =pickColumn(headerKeys,MAP_CANDIDATES.move);
+      const MAP={ rank:pickColumn(headerKeys,MAP_CANDIDATES.rank),
+                  team:pickColumn(headerKeys,MAP_CANDIDATES.team),
+                  city:pickColumn(headerKeys,MAP_CANDIDATES.city),
+                  score:pickColumn(headerKeys,MAP_CANDIDATES.score),
+                  move:pickColumn(headerKeys,MAP_CANDIDATES.move) };
+
+      const region=document.getElementById('region');
       const regionSet=new Set();
       BASE=rows.map((r,i)=>{
-        const obj={ rank:cRank?Number(r[cRank])||(i+1):(i+1), team:cTeam?r[cTeam]:'', city:cCity?r[cCity]:'', score:cScore?r[cScore]:'', move:cMove?(r[cMove]===''?0:r[cMove]):0, raw:r };
-        if(obj.city) regionSet.add(obj.city); return obj;
+        const obj={ rank:MAP.rank?Number(r[MAP.rank])||(i+1):(i+1),
+                    team:MAP.team?r[MAP.team]:'',
+                    city:MAP.city?r[MAP.city]:'',
+                    score:MAP.score?r[MAP.score]:'',
+                    move:MAP.move?(r[MAP.move]===''?0:r[MAP.move]):0,
+                    raw:r };
+        if(obj.city) regionSet.add(obj.city);
+        return obj;
       });
+
       region.innerHTML='<option value="">전체 지역</option>'+Array.from(regionSet).sort().map(v=>`<option value="${v}">${v}</option>`).join('');
-      statusEl.classList.add('hidden'); FILTERED=[...BASE]; render();
+
+      statusEl.classList.add('hidden');
+      FILTERED=[...BASE];
+      // 이벤트 바인딩은 데이터 로드 후에
+      document.getElementById('search').addEventListener('input',applyFilter);
+      document.getElementById('region').addEventListener('change',applyFilter);
+      document.getElementById('prev').addEventListener('click',()=>{PAGE=Math.max(1,PAGE-1);render()});
+      document.getElementById('next').addEventListener('click',()=>{const t=Math.max(1,Math.ceil(FILTERED.length/PAGE_SIZE)); PAGE=Math.min(t,PAGE+1);render()});
+      render();
     }catch(err){
       statusEl.classList.add('hidden'); errorEl.classList.remove('hidden');
-      errorEl.textContent=`데이터 로드 오류: ${err.message}. jsDelivr 주소 또는 저장소/브랜치/경로를 확인하세요.`;
+      errorEl.textContent=`데이터 로드 오류: ${err.message}. 파일이 같은 폴더에 있는지, 파일명이 정확한지 확인하세요.`;
     }
   }
-  loadFromGithub();
+
+  loadLocal();
 </script>
 </body>
 </html>
