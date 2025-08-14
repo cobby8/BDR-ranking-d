@@ -18,29 +18,31 @@
   .city-line{font-size:1.125rem}
   .title{letter-spacing:.2px}
 
-  /* ── Movement badge (화면) ───────────────────────── */
-  .badge{border-radius:9999px; line-height:1; font-weight:800; font-size:1rem; border:1px solid rgba(148,163,184,.34); color:#cbd5e1; background:rgba(148,163,184,.14)}
-  .badge-up{background:rgba(239,68,68,.18);color:#fca5a5;border-color:rgba(239,68,68,.5)}
-  .badge-down{background:rgba(59,130,246,.18);color:#93c5fd;border-color:rgba(59,130,246,.5)}
+  /* ── 랭킹변화 배지(웹) – 완전 중앙 정렬 ───────────────── */
+  .badge{border-radius:9999px;border:1px solid rgba(148,163,184,.34);line-height:1;font-weight:800;font-size:1rem}
+  /* 내용 정렬을 flex 로 고정(아이콘+숫자 모두 세로 중앙) */
+  .badge-grid{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:28px;padding:4px 12px}
+  .badge-pill{display:inline-flex;align-items:center;justify-content:center;height:28px;padding:4px 12px}
+  .badge-up{background:rgba(239,68,68,.18);color:#fca5a5;border-color:rgba(239,68,68,.55)}
+  .badge-down{background:rgba(59,130,246,.18);color:#93c5fd;border-color:rgba(59,130,246,.55)}
   .badge-stay{background:rgba(148,163,184,.14);color:#cbd5e1;border-color:rgba(148,163,184,.34)}
-  /* 2열 그리드(아이콘 16px + 숫자), 높이/패딩 고정 */
-  .is-grid{display:grid;grid-auto-flow:column;grid-template-columns:16px auto;align-items:center;height:28px;padding:4px 10px;gap:.45rem}
-  .is-pill{display:inline-flex;align-items:center;justify-content:center;height:28px;padding:4px 12px}
-  /* 아이콘(+/-/—) 공통: 동일 크기 */
-  .ico{width:16px;height:16px;position:relative;display:inline-block}
+
+  /* 아이콘(+/−/—) : 16×16, 텍스트와 같은 베이스라인 */
+  .ico{width:16px;height:16px;position:relative;display:inline-block;vertical-align:middle}
   .ico::before,.ico::after{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:currentColor;border-radius:2px}
   .ico.plus::before,.ico.minus::before,.ico.dash::before{width:14px;height:2px}
   .ico.plus::after{width:2px;height:14px}
   .ico.minus::after{display:none}
   .ico.dash::after{display:none}
-  .nfix{display:flex;align-items:center;height:28px;line-height:1;transform:translateY(-.5px)} /* 숫자 미세 보정 */
+  /* 숫자 줄높이/세로중앙 */
+  .badge-grid .n{display:flex;align-items:center;height:18px;line-height:1}
 
   /* 점수 변화 색 */
-  .score-up { color: #f87171; font-weight: 700; }
-  .score-down { color: #60a5fa; font-weight: 700; }
-  .score-same { color: #94a3b8; font-weight: 600; }
+  .score-up{color:#f87171;font-weight:700}
+  .score-down{color:#60a5fa;font-weight:700}
+  .score-same{color:#94a3b8;font-weight:600}
 
-  /* Top3 */
+  /* Top-3 */
   .top1{border:1.5px solid rgba(255,215,0,.55);background:linear-gradient(180deg,rgba(255,215,0,.10),transparent 50%),var(--card)}
   .top2{border:1.5px solid rgba(192,192,192,.55);background:linear-gradient(180deg,rgba(192,192,192,.10),transparent 50%),var(--card)}
   .top3{border:1.5px solid rgba(205,127,50,.55);background:linear-gradient(180deg,rgba(205,127,50,.10),transparent 50%),var(--card)}
@@ -49,12 +51,12 @@
   /* 애니메이션 */
   @keyframes popUp{0%{transform:translateY(4px) scale(.98);opacity:0}60%{transform:translateY(-2px) scale(1.02);opacity:1}100%{transform:translateY(0) scale(1)}}
   @keyframes popDown{0%{transform:translateY(-4px) scale(.98);opacity:0}60%{transform:translateY(2px) scale(1.02);opacity:1}100%{transform:translateY(0) scale(1)}}
-  .animate-up{animation:popUp .45s cubic-bezier(.2,.8,.2,1)}.animate-down{animation:popDown .45s cubic-bezier(.2,.8,.2,1)}
+  .animate-up{animation:popUp .45s cubic-bezier(.2,.8,.2,1)} .animate-down{animation:popDown .45s cubic-bezier(.2,.8,.2,1)}
 
   .chip{font-size:.85rem;padding:.4rem .7rem;border-radius:9999px;background:#0c1220;border:1px solid #1f2a3a}
   .chip-region{background:rgba(99,102,241,.14);border-color:rgba(99,102,241,.45);color:#c7d2fe}
 
-  /* ── 4:5 캡처 전용 ───────────────────────────── */
+  /* ── 4:5 캡처 전용(다운로드) – 중앙 정렬 동일 적용 ───────── */
   .ex-root{width:1080px;height:1350px;background:#0e141c;color:#fff;padding:24px;box-sizing:border-box;font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,Apple SD Gothic Neo,Pretendard,sans-serif;-webkit-font-smoothing:antialiased;text-rendering:geometricPrecision}
   .ex-header{display:flex;flex-direction:column;align-items:center;margin-bottom:16px}
   .ex-row{display:flex;align-items:flex-end;justify-content:space-between;width:100%}
@@ -70,18 +72,18 @@
   .ex-rank-num{font-size:44px;font-weight:900}
   .ex-medal{font-size:11px;margin-top:3px}
 
-  .ex-badges{display:flex;flex-direction:column;gap:6px;align-items:flex-start;}
+  .ex-badges{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
   .ex-badge{border-radius:9999px;border:1px solid rgba(148,163,184,.34);font-size:18px;font-weight:800;line-height:1}
-  .ex-badge.up{background:rgba(239,68,68,.18);color:#fca5a5;border-color:rgba(239,68,68,.5)}
-  .ex-badge.down{background:rgba(59,130,246,.18);color:#93c5fd;border-color:rgba(59,130,246,.5)}
+  .ex-badge.up{background:rgba(239,68,68,.18);color:#fca5a5;border-color:rgba(239,68,68,.55)}
+  .ex-badge.down{background:rgba(59,130,246,.18);color:#93c5fd;border-color:rgba(59,130,246,.55)}
   .ex-badge.stay{background:rgba(148,163,184,.14);color:#cbd5e1;border-color:rgba(148,163,184,.34)}
-  .ex-gridbadge{display:grid;grid-auto-flow:column;grid-template-columns:16px auto;align-items:center;height:28px;padding:4px 12px;gap:6px}
+  .ex-gridbadge{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:28px;padding:4px 12px}
   .ex-pill{display:inline-flex;align-items:center;justify-content:center;height:28px;padding:4px 12px}
-  .ex-ico{width:16px;height:16px;position:relative;display:inline-block}
+  .ex-ico{width:16px;height:16px;position:relative;display:inline-block;vertical-align:middle}
   .ex-ico::before,.ex-ico::after{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:currentColor;border-radius:2px}
   .ex-ico.plus::before,.ex-ico.minus::before,.ex-ico.dash::before{width:14px;height:2px}
   .ex-ico.plus::after{width:2px;height:14px}
-  .ex-num{display:flex;align-items:center;height:28px;line-height:1;transform:translateY(-.5px)}
+  .ex-num{display:flex;align-items:center;height:18px;line-height:1}
 
   .ex-team{display:flex;flex-direction:column}
   .ex-team-name{font-size:34px;font-weight:800}
@@ -160,16 +162,16 @@
   const byRankClass=r=>r===1?'top1':r===2?'top2':r===3?'top3':'';
   const medal=r=>r===1?'<span class="medal-g">GOLD</span>':r===2?'<span class="medal-s">SILVER</span>':r===3?'<span class="medal-b">BRONZE</span>':'';
 
-  /* ===== 랭킹변화 배지(화면) ===== */
+  /* ── 랭킹변화 배지(웹) ── */
   function movementBadge(m){
     const n=Number(m);
     if(Number.isNaN(n) || n===0){
-      return `<span class="badge badge-stay is-pill" aria-label="변동 없음"><i class="ico dash"></i></span>`;
+      return `<span class="badge badge-stay badge-pill" aria-label="변동 없음"><i class="ico dash"></i></span>`;
     }
     if(n>0){
-      return `<span class="badge badge-up is-grid animate-up"><i class="ico plus"></i><span class="nfix num">${n}</span></span>`;
+      return `<span class="badge badge-up badge-grid animate-up"><i class="ico plus"></i><span class="n num">${n}</span></span>`;
     }
-    return `<span class="badge badge-down is-grid animate-down"><i class="ico minus"></i><span class="nfix num">${Math.abs(n)}</span></span>`;
+    return `<span class="badge badge-down badge-grid animate-down"><i class="ico minus"></i><span class="n num">${Math.abs(n)}</span></span>`;
   }
 
   /* 점수 변화 */
@@ -218,7 +220,7 @@
     </div>`;
   }
 
-  /* ===== 캡처 카드(4:5): 동일 레이아웃(+/− 아이콘 + 숫자) ===== */
+  /* ── 캡처 카드(4:5) : 동일 중앙정렬 ── */
   function exportCardHTML(it){
     const n=Number(it.move);
     const scoreText = isNaN(Number(it.score)) ? (it.score??'') : Number(it.score).toFixed(1);
@@ -270,7 +272,7 @@
   }
   const renderScreen=()=>{rowCount.textContent=FILTERED.length; list.innerHTML=FILTERED.map(cardHTML).join('');}
 
-  /* 10팀 단위로 범위 */
+  /* 10팀 단위 */
   function buildExportRanges(){
     const total=FILTERED.length, pageSize=10;
     const pages=Math.ceil(total/pageSize)||1;
@@ -308,7 +310,7 @@
   }
   loadLocal();
 
-  /* 4:5 이미지 다운로드 (헤더 실측 + autoscale 보정으로 10위 안잘림) */
+  /* 4:5 이미지 다운로드 – 헤더 실측 + autoscale */
   document.getElementById('btnExport').addEventListener('click', async ()=>{
     const [s,e]=(exportRangeEl.value||'1-10').split('-').map(n=>parseInt(n,10));
     const startIdx=Math.max(0,(s||1)-1), endIdx=Math.min(FILTERED.length,(e||10));
@@ -332,19 +334,19 @@
 
     stage.querySelector('#exportList').innerHTML=slice.map(exportCardHTML).join('');
 
-    // 헤더 실제 높이 측정 후 가용높이 계산 → ex-fit에 적용
+    // 헤더 높이 반영 후 가용 높이 계산
     const headerH = stage.querySelector('#exHeader').offsetHeight;
     const rootH = stage.clientHeight;
-    const paddingGuard = 16; // 여유
-    const fitH = rootH - headerH - paddingGuard;
-    const fit = stage.querySelector('#exFit'); fit.style.height = fitH + 'px';
+    const guard = 16;
+    const fitH = rootH - headerH - guard;
+    stage.querySelector('#exFit').style.height = fitH + 'px';
 
-    // autoscale: 내용이 가용높이보다 크면 축소. 축소 후 실제 높이도 설정해 잘림 방지
+    // autoscale
     const content = stage.querySelector('#exContent');
     const contentH = content.scrollHeight;
     const scale = Math.min(1, (fitH - 6) / contentH);
     content.style.transform = `scale(${scale})`;
-    content.style.height = `${contentH * scale}px`; // 실제 렌더 높이 반영
+    content.style.height = `${contentH * scale}px`; // 실제 렌더 높이 반영(잘림 방지)
 
     try{
       const canvas=await html2canvas(stage,{backgroundColor:'#0e141c',useCORS:true,allowTaint:false,width:1080,height:1350,windowWidth:1080,windowHeight:1350,scale:2});
