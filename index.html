@@ -14,30 +14,26 @@
   .surface{background:var(--surface)} .card{background:var(--card)} .muted{color:var(--muted)} .accent{color:var(--accent)}
   .shadow-smooth{box-shadow:0 10px 30px rgba(0,0,0,.35)} .num{font-variant-numeric:tabular-nums}
 
-  /* ── 화면 기본 가독성 ───────────────── */
   body{font-size:17px; line-height:1.55; -webkit-font-smoothing:antialiased; text-rendering:geometricPrecision}
   .card{border:1px solid #1f2a3a}
   .city-line{font-size:1.125rem}
   .title{letter-spacing:.2px}
 
-  /* Movement badge (화면) */
   .badge{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;border-radius:9999px;padding:.4rem .9rem;line-height:1;font-weight:800;font-size:1rem;border:1px solid rgba(148,163,184,.34)}
   .badge-up{background:rgba(239,68,68,.18);color:#fca5a5;border-color:rgba(239,68,68,.5)}
   .badge-down{background:rgba(59,130,246,.18);color:#93c5fd;border-color:rgba(59,130,246,.5)}
-  .badge-stay{background:rgba(148,163,184,.14);color:#cbd5e1}
+  .badge-stay{background:rgba(148,163,184,.14);color:#cbd5e1;border-color:rgba(148,163,184,.34)}
+  .badge-stay.dash-only::before{content:"";display:block;width:14px;height:2px;background:currentColor;border-radius:2px}
 
-  /* 점수 변화 색상 */
   .score-up { color: #f87171; font-weight: 700; }
   .score-down { color: #60a5fa; font-weight: 700; }
   .score-same { color: #94a3b8; font-weight: 600; }
 
-  /* Top-3 강조 */
   .top1{border:1.5px solid rgba(255,215,0,.55);background:linear-gradient(180deg,rgba(255,215,0,.10),transparent 50%),var(--card)}
   .top2{border:1.5px solid rgba(192,192,192,.55);background:linear-gradient(180deg,rgba(192,192,192,.10),transparent 50%),var(--card)}
   .top3{border:1.5px solid rgba(205,127,50,.55);background:linear-gradient(180deg,rgba(205,127,50,.10),transparent 50%),var(--card)}
   .medal{font-weight:900;letter-spacing:.02em}.medal-g{color:#ffd700}.medal-s{color:#c0c0c0}.medal-b{color:#cd7f32}
 
-  /* 애니메이션 */
   @keyframes popUp{0%{transform:translateY(4px) scale(.98);opacity:0}60%{transform:translateY(-2px) scale(1.02);opacity:1}100%{transform:translateY(0) scale(1)}}
   @keyframes popDown{0%{transform:translateY(-4px) scale(.98);opacity:0}60%{transform:translateY(2px) scale(1.02);opacity:1}100%{transform:translateY(0) scale(1)}}
   .animate-up{animation:popUp .45s cubic-bezier(.2,.8,.2,1)}.animate-down{animation:popDown .45s cubic-bezier(.2,.8,.2,1)}
@@ -45,17 +41,18 @@
   .chip{font-size:.85rem;padding:.4rem .7rem;border-radius:9999px;background:#0c1220;border:1px solid #1f2a3a}
   .chip-region{background:rgba(99,102,241,.14);border-color:rgba(99,102,241,.45);color:#c7d2fe}
 
-  /* ── 4:5 캡처 전용(고정 px) ───────────────── */
+  /* 4:5 캡처용 */
   .ex-root{width:1080px;height:1350px;background:#0e141c;color:#fff;padding:24px;box-sizing:border-box;font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,Apple SD Gothic Neo,Pretendard,sans-serif;-webkit-font-smoothing:antialiased;text-rendering:geometricPrecision}
   .ex-header{display:flex;flex-direction:column;align-items:center;margin-bottom:16px}
   .ex-row{display:flex;align-items:flex-end;justify-content:space-between;width:100%}
   .ex-title{font-size:40px;font-weight:800;letter-spacing:.2px}
   .ex-date{font-size:20px;color:#94a3b8;font-weight:700}
-  .ex-list{display:flex;flex-direction:column;gap:8px;height:calc(1350px - 48px - 120px);overflow:hidden}
+  .ex-fit{width:100%;height:calc(1350px - 120px);overflow:hidden;display:flex;justify-content:center}
+  .ex-content{width:100%;transform-origin:top center}
+  .ex-list{display:flex;flex-direction:column;gap:8px}
 
   .ex-card{background:#131a24;border:1px solid #1f2a3a;border-radius:16px;padding:14px 18px}
   .ex-grid{display:grid;grid-template-columns:80px 200px 1fr 220px;align-items:center;column-gap:16px}
-
   .ex-rank{display:flex;flex-direction:column;align-items:flex-start}
   .ex-rank-num{font-size:44px;font-weight:900}
   .ex-medal{font-size:11px;margin-top:3px}
@@ -68,7 +65,8 @@
   }
   .ex-badge.up{background:rgba(239,68,68,.18);color:#fca5a5;border-color:rgba(239,68,68,.5)}
   .ex-badge.down{background:rgba(59,130,246,.18);color:#93c5fd;border-color:rgba(59,130,246,.5)}
-  .ex-badge.stay{background:rgba(148,163,184,.14);color:#cbd5e1}
+  .ex-badge.stay{background:rgba(148,163,184,.14);color:#cbd5e1;border-color:rgba(148,163,184,.34)}
+  .ex-badge.stay.dash-only::before{content:"";display:block;width:14px;height:2px;background:currentColor;border-radius:2px}
 
   .ex-team{display:flex;flex-direction:column}
   .ex-team-name{font-size:34px;font-weight:800}
@@ -100,8 +98,9 @@
     <select id="region" class="sm:col-span-1 rounded-xl bg-[#0b111a] border border-[#1f2a3a] px-4 py-3">
       <option value="">전체 지역</option>
     </select>
+    <!-- ▼ 기본 옵션은 1–10 -->
     <select id="exportRange" class="sm:col-span-1 rounded-xl bg-[#0b111a] border border-[#1f2a3a] px-4 py-3">
-      <option value="1-15">1–15위</option>
+      <option value="1-10">1–10위</option>
     </select>
     <button id="btnExport" class="sm:col-span-1 rounded-xl bg-[#0b111a] border border-[#1f2a3a] px-4 py-3 hover:bg-[#131a24]">
       4:5 이미지 다운로드
@@ -149,13 +148,13 @@
   const byRankClass=r=>r===1?'top1':r===2?'top2':r===3?'top3':'';
   const medal=r=>r===1?'<span class="medal-g">GOLD</span>':r===2?'<span class="medal-s">SILVER</span>':r===3?'<span class="medal-b">BRONZE</span>':'';
 
-  /* ===== 랭킹변화(화면): 0이면 '-'만, 아니면 +n / -n ===== */
+  /* 랭킹변화: 0이면 '-'만, 아니면 +n / -n */
   function movementBadge(m){
     const n=Number(m);
-    if(Number.isNaN(n)) return `<span class="badge badge-stay">-</span>`;
+    if(Number.isNaN(n)) return `<span class="badge badge-stay dash-only" aria-label="변동 없음"></span>`;
     if(n>0) return `<span class="badge badge-up animate-up">+${n}</span>`;
     if(n<0) return `<span class="badge badge-down animate-down">-${Math.abs(n)}</span>`;
-    return `<span class="badge badge-stay">-</span>`; // n === 0
+    return `<span class="badge badge-stay dash-only" aria-label="변동 없음"></span>`; // 0
   }
 
   /* 점수 변화 */
@@ -204,7 +203,7 @@
     </div>`;
   }
 
-  /* ===== 캡처 카드(4:5): 동일 규칙 적용 ===== */
+  /* 캡처 카드 */
   function exportCardHTML(it){
     const n=Number(it.move);
     const scoreText = isNaN(Number(it.score)) ? (it.score??'') : Number(it.score).toFixed(1);
@@ -215,10 +214,9 @@
     const localRank = LOCAL_RANK_MAP ? (LOCAL_RANK_MAP.get(it.team+"||"+(it.city||""))||'') : '';
 
     let moveHTML='';
-    if(Number.isNaN(n)) moveHTML = `<span class="ex-badge stay">-</span>`;
+    if(Number.isNaN(n) || n===0) moveHTML = `<span class="ex-badge stay dash-only" aria-label="변동 없음"></span>`;
     else if(n>0) moveHTML = `<span class="ex-badge up">+${n}</span>`;
-    else if(n<0) moveHTML = `<span class="ex-badge down">-${Math.abs(n)}</span>`;
-    else moveHTML = `<span class="ex-badge stay">-</span>`; // 0
+    else moveHTML = `<span class="ex-badge down">-${Math.abs(n)}</span>`;
 
     return `
     <div class="ex-card ${byRankClass(it.rank)}">
@@ -252,10 +250,13 @@
     buildLocalRankMap(); renderScreen(); buildExportRanges();
   }
   const renderScreen=()=>{rowCount.textContent=FILTERED.length; list.innerHTML=FILTERED.map(cardHTML).join('');}
+
+  /* ▼▼▼ 여기서부터 10팀 단위로 범위 구성 ▼▼▼ */
   function buildExportRanges(){
-    const total=FILTERED.length, pageSize=15, pages=Math.ceil(total/pageSize)||1;
+    const total=FILTERED.length, pageSize=10;           // 10팀 단위
+    const pages=Math.ceil(total/pageSize)||1;
     exportRangeEl.innerHTML=Array.from({length:pages},(_,i)=>{
-      const s=i*pageSize+1,e=Math.min((i+1)*pageSize,total);
+      const s=i*pageSize+1, e=Math.min((i+1)*pageSize,total);
       return `<option value="${s}-${e}">${s}–${e}위</option>`;
     }).join('');
   }
@@ -288,10 +289,10 @@
   }
   loadLocal();
 
-  /* 4:5 이미지 다운로드 */
+  /* 4:5 이미지 다운로드 (autoscale 유지, 10팀 범위 적용) */
   document.getElementById('btnExport').addEventListener('click', async ()=>{
-    const [s,e]=(exportRangeEl.value||'1-15').split('-').map(n=>parseInt(n,10));
-    const startIdx=Math.max(0,(s||1)-1), endIdx=Math.min(FILTERED.length,(e||15));
+    const [s,e]=(exportRangeEl.value||'1-10').split('-').map(n=>parseInt(n,10)); // 기본 1–10
+    const startIdx=Math.max(0,(s||1)-1), endIdx=Math.min(FILTERED.length,(e||10));
     const slice=FILTERED.slice(startIdx,endIdx);
 
     const stage=document.createElement('div'); stage.className='ex-root';
@@ -303,13 +304,26 @@
           <div class="ex-date">${lastUpdated.textContent}</div>
         </div>
       </div>
-      <div id="exportList" class="ex-list"></div>`;
+      <div class="ex-fit">
+        <div class="ex-content">
+          <div id="exportList" class="ex-list"></div>
+        </div>
+      </div>`;
     document.body.appendChild(stage);
+
     stage.querySelector('#exportList').innerHTML=slice.map(exportCardHTML).join('');
+
+    // autoscale: 내용이 표시영역보다 크면 축소
+    const fit = stage.querySelector('.ex-fit');
+    const content = stage.querySelector('.ex-content');
+    const availableH = fit.clientHeight;
+    const contentH = content.scrollHeight;
+    const scale = Math.min(1, availableH / contentH);
+    content.style.transform = `scale(${scale})`;
 
     try{
       const canvas=await html2canvas(stage,{backgroundColor:'#0e141c',useCORS:true,allowTaint:false,width:1080,height:1350,windowWidth:1080,windowHeight:1350,scale:2});
-      const a=document.createElement('a'); a.download=`bdr_ranking_${s||1}-${e||15}_${new Date().toISOString().slice(0,10)}.png`; a.href=canvas.toDataURL('image/png'); a.click();
+      const a=document.createElement('a'); a.download=`bdr_ranking_${s||1}-${e||10}_${new Date().toISOString().slice(0,10)}.png`; a.href=canvas.toDataURL('image/png'); a.click();
     }catch(e){alert('이미지 저장 오류: '+e.message);}
     finally{stage.remove();}
   });
