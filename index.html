@@ -22,7 +22,6 @@
   html,body{background:var(--surface); font-family:"Noto Sans KR", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Apple SD Gothic Neo", Pretendard, sans-serif; font-size:17px; line-height:1.55; -webkit-font-smoothing:antialiased; text-rendering:geometricPrecision}
   .card{background:var(--card); border:1px solid #1f2a3a}
   .muted{color:var(--muted)} .accent{color:var(--accent)} .shadow-smooth{box-shadow:0 10px 30px rgba(0,0,0,.35)} .num{font-variant-numeric:tabular-nums}
-  .title{letter-spacing:.2px}
   @keyframes spin{to{transform:rotate(360deg)}}
 
   .control-lg{font-size:20px} .control-label{font-size:18px}
@@ -51,8 +50,8 @@
 
   /* 모바일 최적화(바형) */
   .team-name{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  @media (max-width:480px){ .team-name{ font-size:1.25rem !important; } }   /* 20px */
-  @media (max-width:380px){ .team-name{ font-size:1.125rem !important; } }  /* 18px */
+  @media (max-width:480px){ .team-name{ font-size:1.25rem !important; } }
+  @media (max-width:380px){ .team-name{ font-size:1.125rem !important; } }
 
   /* 점수 값을 블록 안쪽으로 더 이동 */
   .score-value{ transform: translateX(-4px); }
@@ -81,20 +80,20 @@
   .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(1px);display:flex;align-items:center;justify-content:center;z-index:60}
   .modal-card{background:#0b111a;border:1px solid #1f2a3a;border-radius:14px;width:min(92vw,560px);padding:20px}
   .btn-strong{font-size:18px;padding:.65rem 1rem;border-radius:.75rem}
-  /* 디버그 배지 */
+
+  /* 디버그 배지(로고 경로 확인용) */
   .logo-debug{position:fixed;left:8px;top:8px;z-index:70;padding:6px 10px;border-radius:8px;background:#0b111a;border:1px solid #1f2a3a;color:#9ca3af;font-size:12px;max-width:88vw;white-space:pre-wrap}
 </style>
 </head>
 <body class="min-h-screen text-white antialiased">
 <div class="max-w-6xl mx-auto px-4 py-6">
 
-  <!-- 헤더 (로고: onerror 체인 + 오버라이드/디버그) -->
-  <div class="flex items-center justify-between mb-3">
-    <div class="flex items-center gap-3">
-      <img id="bdrLogoImg" alt="BDR" class="h-8 w-auto block" />
-      <h1 class="title text-3xl sm:text-4xl font-bold">BDR 랭킹 - 일반부</h1>
+  <!-- 헤더: 로고만 중앙, 2배(64px). 날짜는 우측 상단 -->
+  <div class="relative mb-3">
+    <div class="flex items-center justify-center">
+      <img id="bdrLogoImg" alt="BDR" class="block h-16 w-auto" />
     </div>
-    <span id="lastUpdated" class="text-lg font-semibold muted"></span>
+    <span id="lastUpdated" class="absolute right-0 top-0 text-lg font-semibold muted"></span>
   </div>
 
   <!-- 컨트롤 -->
@@ -141,7 +140,7 @@
 <div id="rangeModal" class="hidden"></div>
 
 <script>
-  /* ------------ 로고 로더: onerror 체인 + 오버라이드 + 디버그 ------------ */
+  /* ------------ 로고: onerror 체인 + 오버라이드/디버그 유지 ------------ */
   (function mountLogo(){
     const img = document.getElementById('bdrLogoImg');
     const qp = new URLSearchParams(location.search);
@@ -167,10 +166,8 @@
       img.src = url;
     }
 
-    // 후보 경로(로컬 → CDN → GitHub Raw)
     const cdnBase = 'https://cdn.jsdelivr.net/gh/cobby8/BDR-ranking-d@main';
     const ghRaw   = 'https://raw.githubusercontent.com/cobby8/BDR-ranking-d/main';
-
     const names = [
       'bdr-logo.svg','BDR-logo.svg','bdr_logo.svg','BDR_Logo.svg','logo-bdr.svg','logo.svg','BDR.svg',
       'bdr-logo.png','BDR-logo.png','bdr_logo.png','logo-bdr.png','logo.png','BDR.png'
@@ -180,12 +177,10 @@
     const localCandidates = [];
     for (const d of dirs){
       for (const n of names){
-        // 중복 제거
         const u = (d.endsWith('/') || d==='' || d==='./' || d==='/') ? (d + n) : (d + '/' + n);
         if (!localCandidates.includes(u)) localCandidates.push(u);
       }
     }
-
     const remoteCandidates = [
       `${cdnBase}/assets/bdr-logo.svg`,
       `${cdnBase}/assets/logo.svg`,
@@ -196,7 +191,6 @@
     const queue = [];
     if (OVERRIDE){
       queue.push(OVERRIDE);
-      // 성공 시 저장, 실패 시 아래 후보로 지속
       img.addEventListener('load', ()=>{ try{ localStorage.setItem('bdr_logo_url', OVERRIDE); }catch(e){} }, {once:true});
     }
     queue.push(...localCandidates, ...remoteCandidates);
@@ -204,12 +198,8 @@
     function next(){
       const url = queue.shift();
       if (!url){
-        // 최종 폴백: 텍스트 워드마크
-        const span = document.createElement('span');
-        span.textContent = 'BDR';
-        span.className = 'font-extrabold text-2xl';
-        img.replaceWith(span);
-        log('FAIL: all candidates exhausted → text fallback');
+        // 최종 폴백: 로고가 없으면 여백 유지(텍스트도 제거)
+        img.remove();
         return;
       }
       applySrc(url);
@@ -350,6 +340,18 @@
   search.addEventListener('input', applyFilter);
 
   // 데이터 로드
+  async function latestRawUrl(){
+    const base = `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${GH_BRANCH}/${XLSX_FILE}`;
+    try{
+      const r = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/commits/${GH_BRANCH}`, {cache:'no-store'});
+      if (r.ok){
+        const j = await r.json();
+        const sha = j?.sha || j?.commit?.tree?.sha || '';
+        if (sha) return base + `?v=${sha}`;
+      }
+    }catch(e){}
+    return base;
+  }
   async function loadData(){
     document.getElementById('status').classList.remove('hidden');
     document.getElementById('error').classList.add('hidden');
@@ -393,7 +395,7 @@
     }
   }
 
-  /* ------------ 이미지 다운로드 (생략 없이 유지) ------------ */
+  /* ------------ 이미지 다운로드(유지) ------------ */
   function buildRanges(mode){
     if(mode==='rank'){
       const maxRank = Math.max(...FILTERED.map(v=>Number(v.rank)||0), 0);
@@ -530,7 +532,6 @@
 
   /* ------------ 부트스트랩 ------------ */
   (async ()=>{
-    document.getElementById('lastUpdated').textContent = formatDate(new Date());
     await loadData();
   })();
 </script>
