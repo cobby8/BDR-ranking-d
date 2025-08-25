@@ -49,7 +49,7 @@
   .top2{border:1.5px solid rgba(192,192,192,.55);background:linear-gradient(180deg,rgba(192,192,192,.10),transparent 50%),var(--card)}
   .top3{border:1.5px solid rgba(205,127,50,.55);background:linear-gradient(180deg,rgba(205,127,50,.10),transparent 50%),var(--card)}
 
-  /* === 모바일 최적화(바 타입 폰) === */
+  /* 모바일 최적화(바형) */
   .team-name{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   @media (max-width:480px){ .team-name{ font-size:1.25rem !important; } }   /* 20px */
   @media (max-width:380px){ .team-name{ font-size:1.125rem !important; } }  /* 18px */
@@ -81,12 +81,14 @@
   .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(1px);display:flex;align-items:center;justify-content:center;z-index:60}
   .modal-card{background:#0b111a;border:1px solid #1f2a3a;border-radius:14px;width:min(92vw,560px);padding:20px}
   .btn-strong{font-size:18px;padding:.65rem 1rem;border-radius:.75rem}
+  /* 디버그 배지 */
+  .logo-debug{position:fixed;left:8px;top:8px;z-index:70;padding:6px 10px;border-radius:8px;background:#0b111a;border:1px solid #1f2a3a;color:#9ca3af;font-size:12px;max-width:88vw;white-space:pre-wrap}
 </style>
 </head>
 <body class="min-h-screen text-white antialiased">
 <div class="max-w-6xl mx-auto px-4 py-6">
 
-  <!-- 헤더 (로고: onerror 체인 방식) -->
+  <!-- 헤더 (로고: onerror 체인 + 오버라이드/디버그) -->
   <div class="flex items-center justify-between mb-3">
     <div class="flex items-center gap-3">
       <img id="bdrLogoImg" alt="BDR" class="h-8 w-auto block" />
@@ -139,42 +141,81 @@
 <div id="rangeModal" class="hidden"></div>
 
 <script>
-  /* ------------ 로고 (onerror 체인) ------------ */
-  function mountLogoImg(){
+  /* ------------ 로고 로더: onerror 체인 + 오버라이드 + 디버그 ------------ */
+  (function mountLogo(){
     const img = document.getElementById('bdrLogoImg');
+    const qp = new URLSearchParams(location.search);
+    const DEBUG = qp.get('logo_debug') === '1';
+    const OVERRIDE = qp.get('logo') || localStorage.getItem('bdr_logo_url') || '';
+
+    let dbg;
+    function log(s){
+      if (!DEBUG) return;
+      if (!dbg){
+        dbg = document.createElement('div');
+        dbg.className='logo-debug';
+        document.body.appendChild(dbg);
+      }
+      dbg.textContent += (dbg.textContent?'\n':'') + s;
+      console.info('[BDR-LOGO]', s);
+    }
+
+    function applySrc(url){
+      log('try: '+url);
+      img.onload = ()=>{ log('OK:  '+url); img.style.display='block'; };
+      img.onerror= ()=>{ next(); };
+      img.src = url;
+    }
+
+    // 후보 경로(로컬 → CDN → GitHub Raw)
     const cdnBase = 'https://cdn.jsdelivr.net/gh/cobby8/BDR-ranking-d@main';
     const ghRaw   = 'https://raw.githubusercontent.com/cobby8/BDR-ranking-d/main';
 
-    const candidates = [
-      // 1) 로컬 빌드 산출물
-      '/assets/bdr-logo.svg','/assets/bdr-logo.png',
-      './assets/bdr-logo.svg','./assets/bdr-logo.png',
-      // 2) CDN(jsDelivr) – 캐시 강력, CORS 무관(표시 용도)
+    const names = [
+      'bdr-logo.svg','BDR-logo.svg','bdr_logo.svg','BDR_Logo.svg','logo-bdr.svg','logo.svg','BDR.svg',
+      'bdr-logo.png','BDR-logo.png','bdr_logo.png','logo-bdr.png','logo.png','BDR.png'
+    ];
+    const dirs = ['', '/', './', 'assets/', '/assets/', 'images/', '/images/', 'img/', '/img/', 'static/', '/static/'];
+
+    const localCandidates = [];
+    for (const d of dirs){
+      for (const n of names){
+        // 중복 제거
+        const u = (d.endsWith('/') || d==='' || d==='./' || d==='/') ? (d + n) : (d + '/' + n);
+        if (!localCandidates.includes(u)) localCandidates.push(u);
+      }
+    }
+
+    const remoteCandidates = [
       `${cdnBase}/assets/bdr-logo.svg`,
-      `${cdnBase}/assets/bdr-logo.png`,
-      // 3) GitHub raw
+      `${cdnBase}/assets/logo.svg`,
       `${ghRaw}/assets/bdr-logo.svg`,
-      `${ghRaw}/assets/bdr-logo.png`,
+      `${ghRaw}/assets/logo.svg`
     ];
 
-    let i = 0;
-    img.onerror = () => {
-      i++;
-      if (i < candidates.length) {
-        img.src = candidates[i];
-      } else {
+    const queue = [];
+    if (OVERRIDE){
+      queue.push(OVERRIDE);
+      // 성공 시 저장, 실패 시 아래 후보로 지속
+      img.addEventListener('load', ()=>{ try{ localStorage.setItem('bdr_logo_url', OVERRIDE); }catch(e){} }, {once:true});
+    }
+    queue.push(...localCandidates, ...remoteCandidates);
+
+    function next(){
+      const url = queue.shift();
+      if (!url){
         // 최종 폴백: 텍스트 워드마크
-        const wrap = img.parentElement;
-        img.remove();
         const span = document.createElement('span');
         span.textContent = 'BDR';
         span.className = 'font-extrabold text-2xl';
-        wrap.prepend(span);
+        img.replaceWith(span);
+        log('FAIL: all candidates exhausted → text fallback');
+        return;
       }
-    };
-    img.onload = () => { img.style.display = 'block'; };
-    img.src = candidates[i]; // 첫 시도
-  }
+      applySrc(url);
+    }
+    next();
+  })();
 
   /* ------------ GitHub 데이터 로드 ------------ */
   const GH_OWNER  = 'cobby8';
@@ -309,18 +350,6 @@
   search.addEventListener('input', applyFilter);
 
   // 데이터 로드
-  async function latestRawUrl(){
-    const base = `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${GH_BRANCH}/${XLSX_FILE}`;
-    try{
-      const r = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/commits/${GH_BRANCH}`, {cache:'no-store'});
-      if (r.ok){
-        const j = await r.json();
-        const sha = j?.sha || j?.commit?.tree?.sha || '';
-        if (sha) return base + `?v=${sha}`;
-      }
-    }catch(e){}
-    return base;
-  }
   async function loadData(){
     document.getElementById('status').classList.remove('hidden');
     document.getElementById('error').classList.add('hidden');
@@ -364,7 +393,7 @@
     }
   }
 
-  /* ------------ 이미지 다운로드 ------------ */
+  /* ------------ 이미지 다운로드 (생략 없이 유지) ------------ */
   function buildRanges(mode){
     if(mode==='rank'){
       const maxRank = Math.max(...FILTERED.map(v=>Number(v.rank)||0), 0);
@@ -386,7 +415,6 @@
       return ranges;
     }
   }
-
   function openRangeModal(){
     const modal = document.getElementById('rangeModal');
     modal.innerHTML = `
@@ -502,8 +530,8 @@
 
   /* ------------ 부트스트랩 ------------ */
   (async ()=>{
-    mountLogoImg();   // <== 로고 먼저
-    await loadData(); // 데이터 로드
+    document.getElementById('lastUpdated').textContent = formatDate(new Date());
+    await loadData();
   })();
 </script>
 </body>
