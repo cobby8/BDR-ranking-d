@@ -50,16 +50,9 @@
   .top3{border:1.5px solid rgba(205,127,50,.55);background:linear-gradient(180deg,rgba(205,127,50,.10),transparent 50%),var(--card)}
 
   /* === 모바일 최적화(바 타입 폰) === */
-  .team-name{
-    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-  }
-  @media (max-width:480px){
-    .team-name{ font-size:1.25rem !important; }     /* 20px → 1.25rem */
-  }
-  @media (max-width:380px){
-    .team-name{ font-size:1.125rem !important; }    /* 더 좁은 폰에서 18px */
-    .card .grid{ gap:0.5rem; }
-  }
+  .team-name{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  @media (max-width:480px){ .team-name{ font-size:1.25rem !important; } }   /* 20px */
+  @media (max-width:380px){ .team-name{ font-size:1.125rem !important; } }  /* 18px */
 
   /* 점수 값을 블록 안쪽으로 더 이동 */
   .score-value{ transform: translateX(-4px); }
@@ -93,10 +86,10 @@
 <body class="min-h-screen text-white antialiased">
 <div class="max-w-6xl mx-auto px-4 py-6">
 
-  <!-- 헤더 (로고: 자동 탐색/인라인 폴백) -->
+  <!-- 헤더 (로고: onerror 체인 방식) -->
   <div class="flex items-center justify-between mb-3">
     <div class="flex items-center gap-3">
-      <div id="bdrLogoWrap" class="h-8 flex items-center"></div>
+      <img id="bdrLogoImg" alt="BDR" class="h-8 w-auto block" />
       <h1 class="title text-3xl sm:text-4xl font-bold">BDR 랭킹 - 일반부</h1>
     </div>
     <span id="lastUpdated" class="text-lg font-semibold muted"></span>
@@ -105,6 +98,7 @@
   <!-- 컨트롤 -->
   <div class="grid grid-cols-1 sm:grid-cols-5 gap-3 items-center">
     <input id="search" type="search" placeholder="팀명/지역 검색…" class="control-lg sm:col-span-2 rounded-xl bg-[#0b111a] border border-[#1f2a3a] px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500" />
+
     <div class="sm:col-span-2 relative">
       <button id="regionToggle" class="control-lg w-full rounded-xl bg-[#0b111a] border border-[#1f2a3a] px-4 py-3 text-left flex items-center justify-between">
         <span id="regionLabel" class="truncate control-label muted">지역 필터 (다중 선택)</span>
@@ -118,6 +112,7 @@
         </div>
       </div>
     </div>
+
     <button id="btnExport" class="control-lg sm:col-span-1 rounded-xl bg-[#0b111a] border border-[#1f2a3a] px-4 py-3 hover:bg-[#131a24]">
       이미지 다운로드
     </button>
@@ -144,46 +139,41 @@
 <div id="rangeModal" class="hidden"></div>
 
 <script>
-  /* ------------ 로고: 다단계 탐색 + 인라인 폴백 ------------ */
-  async function mountLogo(){
-    const wrap = document.getElementById('bdrLogoWrap');
+  /* ------------ 로고 (onerror 체인) ------------ */
+  function mountLogoImg(){
+    const img = document.getElementById('bdrLogoImg');
+    const cdnBase = 'https://cdn.jsdelivr.net/gh/cobby8/BDR-ranking-d@main';
+    const ghRaw   = 'https://raw.githubusercontent.com/cobby8/BDR-ranking-d/main';
+
     const candidates = [
-      '/assets/bdr-logo.svg','./assets/bdr-logo.svg',
-      '/assets/bdr-logo.png','./assets/bdr-logo.png'
+      // 1) 로컬 빌드 산출물
+      '/assets/bdr-logo.svg','/assets/bdr-logo.png',
+      './assets/bdr-logo.svg','./assets/bdr-logo.png',
+      // 2) CDN(jsDelivr) – 캐시 강력, CORS 무관(표시 용도)
+      `${cdnBase}/assets/bdr-logo.svg`,
+      `${cdnBase}/assets/bdr-logo.png`,
+      // 3) GitHub raw
+      `${ghRaw}/assets/bdr-logo.svg`,
+      `${ghRaw}/assets/bdr-logo.png`,
     ];
-    for(const url of candidates){
-      try{
-        const r = await fetch(url, {cache:'no-store'});
-        if(!r.ok) continue;
-        const ct = (r.headers.get('content-type')||'').toLowerCase();
-        if (ct.includes('image/svg') || url.endsWith('.svg')){
-          const svg = await r.text();
-          wrap.innerHTML = svg;
-          const s = wrap.querySelector('svg');
-          if(s){ s.setAttribute('height','32'); s.setAttribute('style','display:block'); }
-          return;
-        } else {
-          const blob = await r.blob();
-          const img = document.createElement('img');
-          img.src = URL.createObjectURL(blob);
-          img.alt = 'BDR'; img.className = 'h-8 w-auto';
-          wrap.replaceChildren(img);
-          return;
-        }
-      }catch(e){}
-    }
-    // 최종 폴백: GitHub raw의 SVG를 가져와 인라인 삽입(경로 문제/캐시 모두 회피)
-    try{
-      const r = await fetch('https://raw.githubusercontent.com/cobby8/BDR-ranking-d/main/assets/bdr-logo.svg',{cache:'no-store'});
-      if (r.ok){
-        const svg = await r.text();
-        wrap.innerHTML = svg; const s = wrap.querySelector('svg');
-        if(s){ s.setAttribute('height','32'); s.setAttribute('style','display:block'); }
-        return;
+
+    let i = 0;
+    img.onerror = () => {
+      i++;
+      if (i < candidates.length) {
+        img.src = candidates[i];
+      } else {
+        // 최종 폴백: 텍스트 워드마크
+        const wrap = img.parentElement;
+        img.remove();
+        const span = document.createElement('span');
+        span.textContent = 'BDR';
+        span.className = 'font-extrabold text-2xl';
+        wrap.prepend(span);
       }
-    }catch(e){}
-    // 완전 실패 시 텍스트 로고
-    wrap.innerHTML = '<div class="font-extrabold text-2xl">BDR</div>';
+    };
+    img.onload = () => { img.style.display = 'block'; };
+    img.src = candidates[i]; // 첫 시도
   }
 
   /* ------------ GitHub 데이터 로드 ------------ */
@@ -319,6 +309,18 @@
   search.addEventListener('input', applyFilter);
 
   // 데이터 로드
+  async function latestRawUrl(){
+    const base = `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${GH_BRANCH}/${XLSX_FILE}`;
+    try{
+      const r = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/commits/${GH_BRANCH}`, {cache:'no-store'});
+      if (r.ok){
+        const j = await r.json();
+        const sha = j?.sha || j?.commit?.tree?.sha || '';
+        if (sha) return base + `?v=${sha}`;
+      }
+    }catch(e){}
+    return base;
+  }
   async function loadData(){
     document.getElementById('status').classList.remove('hidden');
     document.getElementById('error').classList.add('hidden');
@@ -500,8 +502,8 @@
 
   /* ------------ 부트스트랩 ------------ */
   (async ()=>{
-    await mountLogo();
-    await loadData();
+    mountLogoImg();   // <== 로고 먼저
+    await loadData(); // 데이터 로드
   })();
 </script>
 </body>
