@@ -18,23 +18,18 @@
   .city-line{font-size:1.125rem}
   .title{letter-spacing:.2px}
 
-  /* ── 랭킹변화 배지(웹) – 완전 중앙 정렬 ───────────────── */
+  /* 랭킹변화 배지(웹) – 중앙 정렬 고정 */
   .badge{border-radius:9999px;border:1px solid rgba(148,163,184,.34);line-height:1;font-weight:800;font-size:1rem}
-  /* 내용 정렬을 flex 로 고정(아이콘+숫자 모두 세로 중앙) */
   .badge-grid{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:28px;padding:4px 12px}
   .badge-pill{display:inline-flex;align-items:center;justify-content:center;height:28px;padding:4px 12px}
   .badge-up{background:rgba(239,68,68,.18);color:#fca5a5;border-color:rgba(239,68,68,.55)}
   .badge-down{background:rgba(59,130,246,.18);color:#93c5fd;border-color:rgba(59,130,246,.55)}
   .badge-stay{background:rgba(148,163,184,.14);color:#cbd5e1;border-color:rgba(148,163,184,.34)}
 
-  /* 아이콘(+/−/—) : 16×16, 텍스트와 같은 베이스라인 */
   .ico{width:16px;height:16px;position:relative;display:inline-block;vertical-align:middle}
   .ico::before,.ico::after{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:currentColor;border-radius:2px}
   .ico.plus::before,.ico.minus::before,.ico.dash::before{width:14px;height:2px}
   .ico.plus::after{width:2px;height:14px}
-  .ico.minus::after{display:none}
-  .ico.dash::after{display:none}
-  /* 숫자 줄높이/세로중앙 */
   .badge-grid .n{display:flex;align-items:center;height:18px;line-height:1}
 
   /* 점수 변화 색 */
@@ -56,7 +51,7 @@
   .chip{font-size:.85rem;padding:.4rem .7rem;border-radius:9999px;background:#0c1220;border:1px solid #1f2a3a}
   .chip-region{background:rgba(99,102,241,.14);border-color:rgba(99,102,241,.45);color:#c7d2fe}
 
-  /* ── 4:5 캡처 전용(다운로드) – 중앙 정렬 동일 적용 ───────── */
+  /* 4:5 캡처 전용(다운로드) – 중앙 정렬 동일 적용 */
   .ex-root{width:1080px;height:1350px;background:#0e141c;color:#fff;padding:24px;box-sizing:border-box;font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,Apple SD Gothic Neo,Pretendard,sans-serif;-webkit-font-smoothing:antialiased;text-rendering:geometricPrecision}
   .ex-header{display:flex;flex-direction:column;align-items:center;margin-bottom:16px}
   .ex-row{display:flex;align-items:flex-end;justify-content:space-between;width:100%}
@@ -84,16 +79,6 @@
   .ex-ico.plus::before,.ex-ico.minus::before,.ex-ico.dash::before{width:14px;height:2px}
   .ex-ico.plus::after{width:2px;height:14px}
   .ex-num{display:flex;align-items:center;height:18px;line-height:1}
-
-  .ex-team{display:flex;flex-direction:column}
-  .ex-team-name{font-size:34px;font-weight:800}
-  .ex-city{font-size:20px;color:#94a3b8;margin-top:4px}
-  .ex-score{display:flex;flex-direction:column;align-items:flex-end}
-  .ex-score-val{font-size:44px;font-weight:900;color:#ffd54a}
-  .ex-score-diff{display:flex;align-items:baseline;gap:6px;margin-top:6px;font-size:20px}
-  .ex-up{color:#f87171;font-weight:800}
-  .ex-down{color:#60a5fa;font-weight:800}
-  .ex-same{color:#94a3b8;font-weight:700}
 </style>
 </head>
 <body class="min-h-screen surface text-white antialiased">
@@ -111,9 +96,14 @@
   <!-- 컨트롤 -->
   <div class="grid grid-cols-1 sm:grid-cols-5 gap-3 mt-4">
     <input id="search" type="search" placeholder="팀명/지역 검색…" class="sm:col-span-2 rounded-xl bg-[#0b111a] border border-[#1f2a3a] px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500" />
-    <select id="region" class="sm:col-span-1 rounded-xl bg-[#0b111a] border border-[#1f2a3a] px-4 py-3">
-      <option value="">전체 지역</option>
-    </select>
+    <!-- ▼ 체크박스 지역 필터 -->
+    <div class="sm:col-span-2">
+      <div class="text-sm muted mb-2 flex items-center justify-between">
+        <span>지역 필터 (다중 선택)</span>
+        <button id="regionReset" class="text-xs px-2 py-1 rounded bg-[#0b111a] border border-[#1f2a3a] hover:bg-[#131a24]">전체 해제</button>
+      </div>
+      <div id="regionBox" class="flex flex-wrap gap-2 max-h-28 overflow-auto rounded-xl bg-[#0b111a] border border-[#1f2a3a] p-3"></div>
+    </div>
     <select id="exportRange" class="sm:col-span-1 rounded-xl bg-[#0b111a] border border-[#1f2a3a] px-4 py-3">
       <option value="1-10">1–10위</option>
     </select>
@@ -123,7 +113,7 @@
   </div>
 
   <p class="text-sm text-indigo-200/80 text-right -mt-1">
-    ※ 지역필터를 적용하면 지역별 랭킹을 보실 수 있습니다.
+    ※ 지역 체크박스를 여러 개 선택하면 해당 지역들의 랭킹을 함께 볼 수 있습니다.
   </p>
 
   <!-- 리스트 -->
@@ -144,9 +134,12 @@
   const LOCAL_XLSX_URL = "./%ED%8C%80%EB%9E%AD%ED%82%B9_20250813_1.xlsx";
 
   let BASE=[], FILTERED=[], LOCAL_RANK_MAP=null;
-  const list=document.getElementById('list'), search=document.getElementById('search'), region=document.getElementById('region');
-  const rowCount=document.getElementById('rowCount'), statusEl=document.getElementById('status'), errorEl=document.getElementById('error');
-  const lastUpdated=document.getElementById('lastUpdated'); const exportRangeEl=document.getElementById('exportRange');
+  const list=document.getElementById('list'), search=document.getElementById('search'),
+        regionBox=document.getElementById('regionBox'), regionReset=document.getElementById('regionReset'),
+        exportRangeEl=document.getElementById('exportRange'),
+        rowCount=document.getElementById('rowCount'),
+        statusEl=document.getElementById('status'), errorEl=document.getElementById('error'),
+        lastUpdated=document.getElementById('lastUpdated');
 
   function formatDate(d){const z=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}년 ${z(d.getMonth()+1)}월 ${z(d.getDate())}일`;}
   lastUpdated.textContent=formatDate(new Date());
@@ -162,7 +155,7 @@
   const byRankClass=r=>r===1?'top1':r===2?'top2':r===3?'top3':'';
   const medal=r=>r===1?'<span class="medal-g">GOLD</span>':r===2?'<span class="medal-s">SILVER</span>':r===3?'<span class="medal-b">BRONZE</span>':'';
 
-  /* ── 랭킹변화 배지(웹) ── */
+  /* 랭킹변화(웹) */
   function movementBadge(m){
     const n=Number(m);
     if(Number.isNaN(n) || n===0){
@@ -174,7 +167,6 @@
     return `<span class="badge badge-down badge-grid animate-down"><i class="ico minus"></i><span class="n num">${Math.abs(n)}</span></span>`;
   }
 
-  /* 점수 변화 */
   function scoreChangeBadge(val){
     if(val===null || val===undefined || val==="" || Number(val)===0) return `<span class="score-same">-</span>`;
     const num=Number(val); if(Number.isNaN(num)) return `<span class="score-same">-</span>`;
@@ -183,14 +175,27 @@
     return `<span class="score-same">-</span>`;
   }
 
-  function buildLocalRankMap(){
-    const reg=region.value; if(!reg){LOCAL_RANK_MAP=null; return;}
-    const subset = FILTERED.slice().sort((a,b)=> (a.rank??Infinity)-(b.rank??Infinity));
-    const map = new Map(); subset.forEach((it,idx)=>map.set(it.team+"||"+(it.city||""), idx+1)); LOCAL_RANK_MAP = map;
+  function buildRegionCheckboxes(){
+    const regions = Array.from(new Set(BASE.map(b => b.city || '').filter(Boolean))).sort();
+    regionBox.innerHTML = regions.map(r => `
+      <label class="inline-flex items-center gap-2 text-sm bg-[#0b111a] border border-[#1f2a3a] px-2.5 py-1.5 rounded-lg">
+        <input type="checkbox" name="regionSel" value="${r}">
+        <span>${r}</span>
+      </label>
+    `).join('');
   }
-  const regionalBadge=(team,city)=> LOCAL_RANK_MAP?`<span class="chip chip-region">지역 랭킹 ${LOCAL_RANK_MAP.get(team+"||"+(city||""))||''}위</span>`:'';
+  function getSelectedRegions(){
+    return Array.from(document.querySelectorAll('input[name="regionSel"]:checked')).map(el=>el.value);
+  }
 
-  /* 화면 카드 */
+  function buildLocalRankMap(){ // 현재 FILTERED 기준(검색+지역필터 적용 후)
+    const subset = FILTERED.slice().sort((a,b)=> (a.rank??Infinity)-(b.rank??Infinity));
+    const map = new Map();
+    subset.forEach((it,idx) => map.set((it.team||'')+"||"+(it.city||''), idx+1));
+    LOCAL_RANK_MAP = map;
+  }
+  const regionalBadge=(team,city)=> LOCAL_RANK_MAP?`<span class="chip chip-region">지역 랭킹 ${LOCAL_RANK_MAP.get((team||'')+"||"+(city||''))||''}위</span>`:'';
+
   function cardHTML(it){
     const scoreVal = Number(it.score);
     const scoreText = isNaN(scoreVal) ? (it.score??'') : scoreVal.toFixed(1);
@@ -220,7 +225,7 @@
     </div>`;
   }
 
-  /* ── 캡처 카드(4:5) : 동일 중앙정렬 ── */
+  /* 캡처 카드(4:5) */
   function exportCardHTML(it){
     const n=Number(it.move);
     const scoreText = isNaN(Number(it.score)) ? (it.score??'') : Number(it.score).toFixed(1);
@@ -228,7 +233,7 @@
     const diffHTML = (!diff && diff!==0) || Number(diff)===0
       ? `<span class="ex-same">-</span>`
       : (Number(diff)>0 ? `<span class="ex-up">+${Number(diff)}</span>` : `<span class="ex-down">-${Math.abs(Number(diff))}</span>`);
-    const localRank = LOCAL_RANK_MAP ? (LOCAL_RANK_MAP.get(it.team+"||"+(it.city||""))||'') : '';
+    const localRank = LOCAL_RANK_MAP ? (LOCAL_RANK_MAP.get((it.team||'')+"||"+(it.city||''))||'') : '';
 
     let moveHTML='';
     if(Number.isNaN(n) || n===0){
@@ -262,15 +267,29 @@
     </div>`;
   }
 
-  function applyFilter(){
-    const q=(search.value||'').toLowerCase(), reg=region.value;
-    FILTERED=BASE.filter(it=>{
-      const hay=(it.team+' '+it.city).toLowerCase();
-      return (!q||hay.includes(q))&&(!reg||it.city===reg);
-    });
-    buildLocalRankMap(); renderScreen(); buildExportRanges();
+  function getFilteredByRegions(data){
+    const regs = getSelectedRegions();
+    if(regs.length === 0) return data; // 전체
+    const set = new Set(regs);
+    return data.filter(d => set.has(d.city));
   }
-  const renderScreen=()=>{rowCount.textContent=FILTERED.length; list.innerHTML=FILTERED.map(cardHTML).join('');}
+
+  function applyFilter(){
+    const q=(search.value||'').toLowerCase();
+    const regionFiltered = getFilteredByRegions(BASE);
+    FILTERED = regionFiltered.filter(it=>{
+      const hay=(it.team+' '+(it.city||'')).toLowerCase();
+      return !q || hay.includes(q);
+    });
+    buildLocalRankMap();
+    renderScreen();
+    buildExportRanges();
+  }
+
+  const renderScreen=()=>{
+    rowCount.textContent=FILTERED.length;
+    list.innerHTML=FILTERED.map(cardHTML).join('');
+  }
 
   /* 10팀 단위 */
   function buildExportRanges(){
@@ -280,6 +299,11 @@
       const s=i*pageSize+1, e=Math.min((i+1)*pageSize,total);
       return `<option value="${s}-${e}">${s}–${e}위</option>`;
     }).join('');
+  }
+
+  function hookRegionEvents(){
+    regionBox.addEventListener('change', applyFilter);
+    regionReset.addEventListener('click', (e)=>{ e.preventDefault(); document.querySelectorAll('input[name="regionSel"]:checked').forEach(el=>el.checked=false); applyFilter(); });
   }
 
   async function loadLocal(){
@@ -298,15 +322,19 @@
       const regionSet=new Set();
       BASE=rows.map((r,i)=>{const o={
         rank:map.rank?Number(r[map.rank])||(i+1):(i+1),
-        team:map.team?r[map.team]:'', city:map.city?r[map.city]:'',
+        team:map.team?r[map.team]:'', city:map.city?r[map.city]||'',
         score:map.score?r[map.score]:'', move:map.move?(r[map.move]===''?0:r[map.move]):0,
         scoreChange:map.scoreChange?(r[map.scoreChange]||0):null
       }; if(o.city) regionSet.add(o.city); return o;});
-      region.innerHTML='<option value="">전체 지역</option>'+Array.from(regionSet).sort().map(v=>`<option value="${v}">${v}</option>`).join('');
+
+      buildRegionCheckboxes(); hookRegionEvents();
 
       statusEl.classList.add('hidden'); FILTERED=[...BASE]; buildLocalRankMap(); renderScreen(); buildExportRanges();
-      search.addEventListener('input',applyFilter); region.addEventListener('change',applyFilter);
-    }catch(err){statusEl.classList.add('hidden'); errorEl.classList.remove('hidden'); errorEl.textContent=`데이터 로드 오류: ${err.message}.`;}
+      search.addEventListener('input',applyFilter);
+    }catch(err){
+      statusEl.classList.add('hidden'); errorEl.classList.remove('hidden');
+      errorEl.textContent=`데이터 로드 오류: ${err.message}.`;
+    }
   }
   loadLocal();
 
