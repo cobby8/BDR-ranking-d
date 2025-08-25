@@ -28,6 +28,7 @@
   .control-lg{font-size:20px} .control-label{font-size:18px}
   @media (max-width:480px){ .control-lg{font-size:18px} .control-label{font-size:16px} }
 
+  /* 랭킹 변화 뱃지 */
   .badge{border-radius:9999px;border:1px solid rgba(148,163,184,.34);line-height:1;font-weight:800;font-size:1rem}
   .badge-grid{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:28px;padding:4px 12px}
   .badge-pill{display:inline-flex;align-items:center;justify-content:center;height:28px;padding:4px 12px}
@@ -43,12 +44,26 @@
   .score-down{color:#60a5fa;font-weight:700}
   .score-same{color:#94a3b8;font-weight:600}
 
+  /* 상위 3개 강조 */
   .top1{border:1.5px solid rgba(255,215,0,.55);background:linear-gradient(180deg,rgba(255,215,0,.10),transparent 50%),var(--card)}
   .top2{border:1.5px solid rgba(192,192,192,.55);background:linear-gradient(180deg,rgba(192,192,192,.10),transparent 50%),var(--card)}
   .top3{border:1.5px solid rgba(205,127,50,.55);background:linear-gradient(180deg,rgba(205,127,50,.10),transparent 50%),var(--card)}
 
-  .score-value{ transform: translateX(-2px); }
-  @media (max-width:480px){ .score-value{ font-size: calc(1.875rem - 2px) !important; } }
+  /* === 모바일 최적화(바 타입 폰) === */
+  .team-name{
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  @media (max-width:480px){
+    .team-name{ font-size:1.25rem !important; }     /* 20px → 1.25rem */
+  }
+  @media (max-width:380px){
+    .team-name{ font-size:1.125rem !important; }    /* 더 좁은 폰에서 18px */
+    .card .grid{ gap:0.5rem; }
+  }
+
+  /* 점수 값을 블록 안쪽으로 더 이동 */
+  .score-value{ transform: translateX(-4px); }
+  @media (max-width:480px){ .score-value{ transform: translateX(-8px); } }
 
   /* ── 캡처(다운로드) : 고정 1080×1350 ── */
   .ex-root{width:1080px;height:1350px;background:#0e141c;color:#fff;padding:32px 36px 28px;box-sizing:border-box;-webkit-font-smoothing:antialiased;text-rendering:geometricPrecision}
@@ -78,10 +93,10 @@
 <body class="min-h-screen text-white antialiased">
 <div class="max-w-6xl mx-auto px-4 py-6">
 
-  <!-- 헤더 (로고 자동 폴백 포함) -->
+  <!-- 헤더 (로고: 자동 탐색/인라인 폴백) -->
   <div class="flex items-center justify-between mb-3">
     <div class="flex items-center gap-3">
-      <img id="bdrLogo" alt="BDR" class="h-8 w-auto" />
+      <div id="bdrLogoWrap" class="h-8 flex items-center"></div>
       <h1 class="title text-3xl sm:text-4xl font-bold">BDR 랭킹 - 일반부</h1>
     </div>
     <span id="lastUpdated" class="text-lg font-semibold muted"></span>
@@ -90,8 +105,6 @@
   <!-- 컨트롤 -->
   <div class="grid grid-cols-1 sm:grid-cols-5 gap-3 items-center">
     <input id="search" type="search" placeholder="팀명/지역 검색…" class="control-lg sm:col-span-2 rounded-xl bg-[#0b111a] border border-[#1f2a3a] px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500" />
-
-    <!-- 지역 드롭다운 -->
     <div class="sm:col-span-2 relative">
       <button id="regionToggle" class="control-lg w-full rounded-xl bg-[#0b111a] border border-[#1f2a3a] px-4 py-3 text-left flex items-center justify-between">
         <span id="regionLabel" class="truncate control-label muted">지역 필터 (다중 선택)</span>
@@ -105,7 +118,6 @@
         </div>
       </div>
     </div>
-
     <button id="btnExport" class="control-lg sm:col-span-1 rounded-xl bg-[#0b111a] border border-[#1f2a3a] px-4 py-3 hover:bg-[#131a24]">
       이미지 다운로드
     </button>
@@ -132,18 +144,46 @@
 <div id="rangeModal" class="hidden"></div>
 
 <script>
-  /* ------------ 로고 자동 폴백 ------------ */
-  const LOGO_CANDIDATES = [
-    '/assets/bdr-logo.svg','./assets/bdr-logo.svg',
-    '/assets/bdr-logo.png','./assets/bdr-logo.png'
-  ];
-  async function loadLogo(){
-    const img = document.getElementById('bdrLogo');
-    for (const url of LOGO_CANDIDATES){
-      try{ const r = await fetch(url,{cache:'no-store', method:'GET'}); if(r.ok){ img.src = url; return; } }catch(e){}
+  /* ------------ 로고: 다단계 탐색 + 인라인 폴백 ------------ */
+  async function mountLogo(){
+    const wrap = document.getElementById('bdrLogoWrap');
+    const candidates = [
+      '/assets/bdr-logo.svg','./assets/bdr-logo.svg',
+      '/assets/bdr-logo.png','./assets/bdr-logo.png'
+    ];
+    for(const url of candidates){
+      try{
+        const r = await fetch(url, {cache:'no-store'});
+        if(!r.ok) continue;
+        const ct = (r.headers.get('content-type')||'').toLowerCase();
+        if (ct.includes('image/svg') || url.endsWith('.svg')){
+          const svg = await r.text();
+          wrap.innerHTML = svg;
+          const s = wrap.querySelector('svg');
+          if(s){ s.setAttribute('height','32'); s.setAttribute('style','display:block'); }
+          return;
+        } else {
+          const blob = await r.blob();
+          const img = document.createElement('img');
+          img.src = URL.createObjectURL(blob);
+          img.alt = 'BDR'; img.className = 'h-8 w-auto';
+          wrap.replaceChildren(img);
+          return;
+        }
+      }catch(e){}
     }
-    // 끝까지 실패 시 텍스트 대체
-    img.replaceWith(Object.assign(document.createElement('div'),{textContent:'BDR', className:'font-extrabold text-2xl'}));
+    // 최종 폴백: GitHub raw의 SVG를 가져와 인라인 삽입(경로 문제/캐시 모두 회피)
+    try{
+      const r = await fetch('https://raw.githubusercontent.com/cobby8/BDR-ranking-d/main/assets/bdr-logo.svg',{cache:'no-store'});
+      if (r.ok){
+        const svg = await r.text();
+        wrap.innerHTML = svg; const s = wrap.querySelector('svg');
+        if(s){ s.setAttribute('height','32'); s.setAttribute('style','display:block'); }
+        return;
+      }
+    }catch(e){}
+    // 완전 실패 시 텍스트 로고
+    wrap.innerHTML = '<div class="font-extrabold text-2xl">BDR</div>';
   }
 
   /* ------------ GitHub 데이터 로드 ------------ */
@@ -172,7 +212,7 @@
   const numOrNull = v => { const n = Number(v); return isNaN(n) ? null : n; };
   const byRankClass=r=>r===1?'top1':r===2?'top2':r===3?'top3':'';
 
-  let BASE=[], FILTERED=[], LOCAL_RANK_MAP=null;
+  let BASE=[], FILTERED=[];
 
   function movementBadge(m){
     const n=Number(m);
@@ -202,7 +242,7 @@
           ${movementBadge(it.move)}
         </div>
         <div class="col-span-4 sm:col-span-5">
-          <div class="text-2xl font-semibold">${it.team}</div>
+          <div class="team-name text-2xl font-semibold">${it.team}</div>
           <div class="text-lg muted mt-0.5">${it.city || ''}</div>
         </div>
         <div class="col-span-3 sm:col-span-3 text-right">
@@ -325,7 +365,6 @@
   /* ------------ 이미지 다운로드 ------------ */
   function buildRanges(mode){
     if(mode==='rank'){
-      // 절대 랭킹 번호 기반 (10단위)
       const maxRank = Math.max(...FILTERED.map(v=>Number(v.rank)||0), 0);
       const lastGroup = Math.ceil(maxRank/10);
       const ranges=[];
@@ -335,7 +374,6 @@
       }
       return ranges;
     }else{
-      // 현재 화면 순번 기반 (10단위)
       const n = FILTERED.length;
       const lastGroup = Math.ceil(n/10);
       const ranges=[];
@@ -397,21 +435,19 @@
       close();
     };
   }
+  document.getElementById('btnExport').addEventListener('click', openRangeModal);
 
   async function doExport(mode, rangeStr){
     const [a,b]=(rangeStr||'1-10').split('-').map(n=>parseInt(n,10));
-
-    // 1) 대상 셋
     let subset=[];
     if(mode==='rank'){
       subset = FILTERED.filter(it => Number(it.rank)>=a && Number(it.rank)<=b)
                        .sort((x,y)=> Number(x.rank)-Number(y.rank));
     }else{
-      subset = FILTERED.slice(a-1, b); // 현재 목록에서 자르기
+      subset = FILTERED.slice(a-1, b);
     }
     if(!subset.length){ alert('해당 범위에 팀이 없습니다. 범위를 바꿔주세요.'); return; }
 
-    // 2) 오프스크린 스테이지 구성
     const stage=document.createElement('div'); stage.className='ex-root';
     stage.innerHTML=`
       <div class="ex-header">
@@ -431,16 +467,14 @@
             ? `<span class="ex-up num">+${Math.abs(Number(diff)).toFixed(1)}</span>`
             : `<span class="ex-down num">-${Math.abs(Number(diff)).toFixed(1)}</span>`);
       const moveHTML=Number.isNaN(n)||n===0
-        ? `<span class="badge ex-same ex-pill"><i class="ico dash"></i></span>`
+        ? `<span class="badge badge-stay ex-pill"><i class="ico dash"></i></span>`
         : (n>0
             ? `<span class="badge badge-up ex-gridbadge"><i class="ico plus"></i><span class="num">${n}</span></span>`
             : `<span class="badge badge-down ex-gridbadge"><i class="ico minus"></i><span class="num">${Math.abs(n)}</span></span>`);
       return `
       <div class="ex-card ${byRankClass(it.rank)}">
         <div class="ex-grid">
-          <div>
-            <div class="ex-rank-num num">${it.rank}</div>
-          </div>
+          <div><div class="ex-rank-num num">${it.rank}</div></div>
           <div>${moveHTML}</div>
           <div>
             <div class="ex-team-name">${it.team}</div>
@@ -455,12 +489,8 @@
     }).join('');
 
     try{
-      // 레이아웃/폰트 적용 기다림 (2프레임)
       await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
-      const canvas=await html2canvas(stage,{
-        backgroundColor:'#0e141c', useCORS:true, allowTaint:false,
-        width:1080, height:1350, windowWidth:1080, windowHeight:1350, scale:2
-      });
+      const canvas=await html2canvas(stage,{backgroundColor:'#0e141c', useCORS:true, allowTaint:false, width:1080, height:1350, windowWidth:1080, windowHeight:1350, scale:2});
       const aTag=document.createElement('a');
       aTag.download=`bdr_ranking_${mode==='rank'?'rank':'list'}_${a}-${b}_${new Date().toISOString().slice(0,10)}.png`;
       aTag.href=canvas.toDataURL('image/png'); aTag.click();
@@ -469,9 +499,8 @@
   }
 
   /* ------------ 부트스트랩 ------------ */
-  document.getElementById('btnExport').addEventListener('click', openRangeModal);
   (async ()=>{
-    await loadLogo();
+    await mountLogo();
     await loadData();
   })();
 </script>
