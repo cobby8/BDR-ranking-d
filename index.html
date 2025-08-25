@@ -20,7 +20,7 @@
   @keyframes spin{to{transform:rotate(360deg)}}
 
   /* 컨트롤 폰트 +3px */
-  .control-lg{font-size:20px}     /* 기본 17px 대비 +3px */
+  .control-lg{font-size:20px}
   .control-label{font-size:18px}
 
   /* 랭킹변화 배지(웹) – 중앙 정렬 */
@@ -41,13 +41,13 @@
   .score-down{color:#60a5fa;font-weight:700}
   .score-same{color:#94a3b8;font-weight:600}
 
-  /* Top-3 */
+  /* Top-3 강조 */
   .top1{border:1.5px solid rgba(255,215,0,.55);background:linear-gradient(180deg,rgba(255,215,0,.10),transparent 50%),var(--card)}
   .top2{border:1.5px solid rgba(192,192,192,.55);background:linear-gradient(180deg,rgba(192,192,192,.10),transparent 50%),var(--card)}
   .top3{border:1.5px solid rgba(205,127,50,.55);background:linear-gradient(180deg,rgba(205,127,50,.10),transparent 50%),var(--card)}
   .medal{font-weight:900;letter-spacing:.02em}.medal-g{color:#ffd700}.medal-s{color:#c0c0c0}.medal-b{color:#cd7f32}
 
-  /* 캡처 전용(다운로드) – 동일 중앙 정렬 */
+  /* 캡처(다운로드)도 동일 중앙 정렬 */
   .ex-root{width:1080px;height:1350px;background:#0e141c;color:#fff;padding:24px;box-sizing:border-box;font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,Apple SD Gothic Neo,Pretendard,sans-serif;-webkit-font-smoothing:antialiased;text-rendering:geometricPrecision}
   .ex-header{display:flex;flex-direction:column;align-items:center;margin-bottom:16px}
   .ex-row{display:flex;align-items:flex-end;justify-content:space-between;width:100%}
@@ -56,10 +56,8 @@
   .ex-fit{width:100%;overflow:hidden;display:flex;justify-content:center}
   .ex-content{width:100%;transform-origin:top center}
   .ex-list{display:flex;flex-direction:column;gap:8px}
-
   .ex-card{background:#131a24;border:1px solid #1f2a3a;border-radius:16px;padding:14px 18px}
   .ex-grid{display:grid;grid-template-columns:80px 200px 1fr 220px;align-items:center;column-gap:16px}
-  .ex-badges{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
   .ex-badge{border-radius:9999px;border:1px solid rgba(148,163,184,.34);font-size:18px;font-weight:800;line-height:1}
   .ex-badge.up{background:rgba(239,68,68,.18);color:#fca5a5;border-color:rgba(239,68,68,.55)}
   .ex-badge.down{background:rgba(59,130,246,.18);color:#93c5fd;border-color:rgba(59,130,246,.55)}
@@ -74,14 +72,15 @@
 
   /* 커스텀 멀티셀렉트(지역) – 한 열, 큰 글자 */
   .dropdown-panel{position:absolute;z-index:50;width:100%;margin-top:.5rem;border-radius:12px;background:#0b111a;border:1px solid #1f2a3a;box-shadow:0 10px 25px rgba(0,0,0,.45)}
-  .region-item{display:flex;align-items:center;gap:.75rem;padding:.7rem .85rem;border-radius:.6rem;cursor:pointer}
+  .region-item{display:flex;align-items:center;gap:.9rem;padding:.8rem 1rem;border-radius:.75rem;cursor:pointer}
   .region-item:hover{background:#0f1723}
-  .region-item input{width:18px;height:18px}
-  .region-item span{font-size:1.05rem}
+  .region-item input{width:20px;height:20px}
+  .region-item span{font-size:1.1rem}
 
   /* 모달(랭킹 범위 선택) */
   .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(1px);display:flex;align-items:center;justify-content:center;z-index:60}
   .modal-card{background:#0b111a;border:1px solid #1f2a3a;border-radius:14px;width:min(92vw,520px);padding:20px}
+  .btn-strong{font-size:18px;padding:.65rem 1rem;border-radius:.75rem}
 </style>
 </head>
 <body class="min-h-screen surface text-white antialiased">
@@ -106,11 +105,11 @@
         <span id="regionLabel" class="truncate control-label muted">지역 필터 (다중 선택)</span>
         <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#94a3b8" d="M7 10l5 5 5-5z"/></svg>
       </button>
-      <div id="regionPanel" class="hidden dropdown-panel p-3" onclick="event.stopPropagation()">
+      <div id="regionPanel" class="hidden dropdown-panel p-3">
         <div id="regionList" class="flex flex-col gap-1"></div>
-        <div class="mt-3 flex items-center justify-between">
-          <button id="regionReset" class="text-xs px-2 py-1 rounded bg-[#0b111a] border border-[#1f2a3a] hover:bg-[#131a24]">전체 해제</button>
-          <button id="regionApply" class="text-xs px-3 py-1 rounded bg-indigo-600 hover:bg-indigo-500">적용</button>
+        <div class="mt-4 flex items-center justify-between">
+          <button id="regionReset" class="btn-strong bg-[#0b111a] border border-[#1f2a3a]">전체 해제</button>
+          <button id="regionApply" class="btn-strong bg-indigo-600 hover:bg-indigo-500">적용</button>
         </div>
       </div>
     </div>
@@ -175,7 +174,21 @@
   const byRankClass=r=>r===1?'top1':r===2?'top2':r===3?'top3':'';
   const medal=r=>r===1?'<span class="medal-g">GOLD</span>':r===2?'<span class="medal-s">SILVER</span>':r===3?'<span class="medal-b">BRONZE</span>':'';
 
-  /* ------- 렌더/유틸(호출보다 위에 선언) ------- */
+  /* 지역 정렬 우선순위: 서울→경기→인천→강원도→충청도→전라도→경상도→제주도 */
+  function regionOrderKey(name){
+    const n=(name||'').trim();
+    const starts=(p)=>n.startsWith(p);
+    if(n==='서울'||starts('서울')) return 1;
+    if(n==='경기'||starts('경기')) return 2;
+    if(n==='인천'||starts('인천')) return 3;
+    if(n.includes('강원')) return 4;
+    if(n.includes('충청')||n.startsWith('충남')||n.startsWith('충북')||n.startsWith('대전')||n.startsWith('세종')) return 5;
+    if(n.includes('전라')||n.startsWith('전남')||n.startsWith('전북')||n.startsWith('광주')) return 6;
+    if(n.includes('경상')||n.startsWith('경남')||n.startsWith('경북')||n.startsWith('부산')||n.startsWith('대구')||n.startsWith('울산')) return 7;
+    if(n.includes('제주')) return 8;
+    return 9;
+  }
+
   function movementBadge(m){
     const n=Number(m);
     if(Number.isNaN(n) || n===0){
@@ -233,18 +246,14 @@
     rowCount.textContent=FILTERED.length;
     list.innerHTML=FILTERED.map(cardHTML).join('');
   }
-  function buildExportRanges(){
-    const total=FILTERED.length, pageSize=10;
-    const pages=Math.ceil(total/pageSize)||1;
-    return Array.from({length:pages},(_,i)=>{
-      const s=i*pageSize+1, e=Math.min((i+1)*pageSize,total);
-      return {label:`${s}–${e}위`, value:`${s}-${e}`};
-    });
-  }
 
-  /* ------- 필터/드롭다운 로직 ------- */
+  /* 지역 드롭다운 구성(정렬 순서 반영) */
   function buildRegionDropdown(){
-    const regions = Array.from(new Set(BASE.map(b => (b.city||'').trim()).filter(Boolean))).sort();
+    let regions = Array.from(new Set(BASE.map(b => (b.city||'').trim()).filter(Boolean)));
+    regions.sort((a,b)=>{
+      const oa=regionOrderKey(a), ob=regionOrderKey(b);
+      return oa===ob ? a.localeCompare(b,'ko') : oa-ob;
+    });
     regionList.innerHTML = regions.map(r => `
       <label class="region-item">
         <input type="checkbox" value="${r}" class="regionOpt">
@@ -278,7 +287,7 @@
   function closeRegionPanel(){ regionPanel.classList.add('hidden'); }
   regionToggle.addEventListener('click', (e)=>{ e.stopPropagation(); regionPanel.classList.toggle('hidden'); });
   document.addEventListener('click', ()=>{ if(!regionPanel.classList.contains('hidden')) closeRegionPanel(); });
-  regionPanel.addEventListener('click', (e)=> e.stopPropagation()); // 내부 클릭시 닫히지 않도록
+  regionPanel.addEventListener('click', (e)=> e.stopPropagation()); // 내부 클릭시 닫힘 방지
 
   regionReset.addEventListener('click', (e)=>{
     e.preventDefault();
@@ -300,11 +309,11 @@
 
   search.addEventListener('input', applyFilter);
 
-  /* ------- 데이터 로드 ------- */
+  /* 데이터 로드 */
   async function loadLocal(){
     statusEl.classList.remove('hidden'); errorEl.classList.add('hidden'); errorEl.textContent='';
     try{
-      const res=await fetch(LOCAL_XLSX_URL,{cache:'no-store'});
+      const res=await fetch(LOCAL_XLSX_URL,{cache:'no-store',mode:'cors'});
       if(!res.ok) throw new Error(`HTTP ${res.status}`);
       const ab=await res.arrayBuffer();
       const wb=XLSX.read(new Uint8Array(ab),{type:'array'});
@@ -324,8 +333,7 @@
         scoreChange:map.scoreChange?(r[map.scoreChange]||0):null
       }));
 
-      buildRegionDropdown();
-      updateRegionLabel();
+      buildRegionDropdown(); updateRegionLabel();
 
       FILTERED=[...BASE];
       buildLocalRankMap();
@@ -340,16 +348,25 @@
   }
   loadLocal();
 
-  /* ------- 모달(랭킹 범위 선택) + 다운로드 ------- */
+  /* 모달(랭킹 범위 선택) + 다운로드 */
+  function buildExportRanges(){
+    const total=FILTERED.length, pageSize=10;
+    const pages=Math.ceil(total/pageSize)||1;
+    return Array.from({length:pages},(_,i)=>{
+      const s=i*pageSize+1, e=Math.min((i+1)*pageSize,total);
+      return {label:`${s}–${e}위`, value:`${s}-${e}`};
+    });
+  }
   function openRangeModal(){
-    const ranges = buildExportRanges(); // 현재 필터 결과 기준
+    const ranges = buildExportRanges();
+    if(!ranges.length){ alert('다운로드할 팀이 없습니다. 필터를 확인하세요.'); return; }
     const modal = document.getElementById('rangeModal');
     modal.innerHTML = `
-      <div class="modal-backdrop" role="dialog" aria-modal="true" onclick="document.getElementById('rangeModal').classList.add('hidden')">
+      <div class="modal-backdrop" role="dialog" aria-modal="true">
         <div class="modal-card" onclick="event.stopPropagation()">
           <div class="flex items-center justify-between mb-3">
             <h2 class="text-lg font-semibold">이미지 다운로드</h2>
-            <button id="mdClose" class="px-2 py-1 rounded bg-[#0b111a] border border-[#1f2a3a]">닫기</button>
+            <button id="mdClose" class="btn-strong bg-[#0b111a] border border-[#1f2a3a]">닫기</button>
           </div>
           <div class="space-y-3">
             <label class="text-sm muted">랭킹 범위(10팀 단위)</label>
@@ -358,18 +375,22 @@
             </select>
           </div>
           <div class="mt-4 flex items-center justify-end gap-2">
-            <button id="mdCancel" class="px-3 py-2 rounded bg-[#0b111a] border border-[#1f2a3a]">취소</button>
-            <button id="mdDownload" class="px-3 py-2 rounded bg-indigo-600 hover:bg-indigo-500">다운로드</button>
+            <button id="mdCancel" class="btn-strong bg-[#0b111a] border border-[#1f2a3a]">취소</button>
+            <button id="mdDownload" class="btn-strong bg-indigo-600 hover:bg-indigo-500">다운로드</button>
           </div>
         </div>
       </div>`;
     modal.classList.remove('hidden');
-    document.getElementById('mdClose').onclick = ()=> modal.classList.add('hidden');
-    document.getElementById('mdCancel').onclick = ()=> modal.classList.add('hidden');
-    document.getElementById('mdDownload').onclick = async ()=>{
-      const val = (document.getElementById('mdRange').value||'1-10');
+
+    const close=()=>modal.classList.add('hidden');
+    modal.querySelector('#mdClose').onclick=close;
+    modal.querySelector('#mdCancel').onclick=close;
+    modal.querySelector('.modal-backdrop').onclick=close;
+
+    modal.querySelector('#mdDownload').onclick=async ()=>{
+      const val=(document.getElementById('mdRange').value||'1-10');
       await doExport(val);
-      modal.classList.add('hidden');
+      close();
     };
   }
   document.getElementById('btnExport').addEventListener('click', openRangeModal);
@@ -394,25 +415,49 @@
       </div>`;
     document.body.appendChild(stage);
 
-    stage.querySelector('#exportList').innerHTML=slice.map(exportCardHTML).join('');
+    stage.querySelector('#exportList').innerHTML=slice.map(it=>{
+      const n=Number(it.move);
+      const scoreText=isNaN(Number(it.score))?(it.score??''):Number(it.score).toFixed(1);
+      const diff=it.scoreChange;
+      const diffHTML=(!diff&&diff!==0)||Number(diff)===0?`<span class="ex-same">-</span>`:(Number(diff)>0?`<span class="ex-up">+${Number(diff)}</span>`:`<span class="ex-down">-${Math.abs(Number(diff))}</span>`);
+      const moveHTML=Number.isNaN(n)||n===0?`<span class="ex-badge stay ex-pill"><i class="ex-ico dash"></i></span>`:(n>0?`<span class="ex-badge up ex-gridbadge"><i class="ex-ico plus"></i><span class="ex-num num">${n}</span></span>`:`<span class="ex-badge down ex-gridbadge"><i class="ex-ico minus"></i><span class="ex-num num">${Math.abs(n)}</span></span>`);
+      return `
+      <div class="ex-card ${byRankClass(it.rank)}">
+        <div class="ex-grid">
+          <div>
+            <div class="ex-rank-num num">${it.rank}</div>
+            <div class="text-[11px] mt-1">${it.rank===1?'<span class="medal-g">GOLD</span>':it.rank===2?'<span class="medal-s">SILVER</span>':it.rank===3?'<span class="medal-b">BRONZE</span>':''}</div>
+          </div>
+          <div class="ex-badges">${moveHTML}</div>
+          <div>
+            <div class="ex-team-name">${it.team}</div>
+            <div class="ex-city">${it.city||''}</div>
+          </div>
+          <div class="text-right">
+            <div class="ex-score-val num">${scoreText}</div>
+            <div class="ex-score-diff num">${diffHTML}<span class="ex-same">점</span></div>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
 
-    const headerH = stage.querySelector('#exHeader').offsetHeight;
-    const rootH = stage.clientHeight;
-    const guard = 16;
-    const fitH = rootH - headerH - guard;
-    stage.querySelector('#exFit').style.height = fitH + 'px';
+    const headerH=stage.querySelector('#exHeader').offsetHeight;
+    const rootH=stage.clientHeight;
+    const guard=16;
+    const fitH=rootH-headerH-guard;
+    stage.querySelector('#exFit').style.height=fitH+'px';
 
-    const content = stage.querySelector('#exContent');
-    const contentH = content.scrollHeight;
-    const scale = Math.min(1, (fitH - 6) / contentH);
-    content.style.transform = `scale(${scale})`;
-    content.style.height = `${contentH * scale}px`;
+    const content=stage.querySelector('#exContent');
+    const contentH=content.scrollHeight;
+    const scale=Math.min(1,(fitH-6)/contentH);
+    content.style.transform=`scale(${scale})`;
+    content.style.height=`${contentH*scale}px`;
 
     try{
       const canvas=await html2canvas(stage,{backgroundColor:'#0e141c',useCORS:true,allowTaint:false,width:1080,height:1350,windowWidth:1080,windowHeight:1350,scale:2});
       const a=document.createElement('a'); a.download=`bdr_ranking_${s||1}-${e||10}_${new Date().toISOString().slice(0,10)}.png`; a.href=canvas.toDataURL('image/png'); a.click();
-    }catch(e){alert('이미지 저장 오류: '+e.message);}
-    finally{stage.remove();}
+    }catch(e){ alert('이미지 저장 오류: '+e.message); }
+    finally{ stage.remove(); }
   }
 </script>
 </body>
