@@ -32,10 +32,8 @@
   .control-lg{font-size:20px} .control-label{font-size:18px}
   @media (max-width:480px){ .control-lg{font-size:18px} .control-label{font-size:16px} }
 
-  /* 변화 배지 20% 축소 */
   .move-badge{ transform:scale(.8); transform-origin:left center; }
   .ex-move-badge{ transform:scale(.8); transform-origin:left center; }
-
   .badge{border-radius:9999px;border:1px solid rgba(148,163,184,.34);line-height:1;font-weight:800;font-size:1rem}
   .badge-grid{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:28px;padding:4px 12px}
   .badge-pill{display:inline-flex;align-items:center;justify-content:center;height:28px;padding:4px 12px}
@@ -51,21 +49,17 @@
   .score-down{color:#60a5fa;font-weight:700}
   .score-same{color:#94a3b8;font-weight:600}
 
-  /* 상위 3 강조 */
   .top1{border:1.5px solid rgba(255,215,0,.55);background:linear-gradient(180deg,rgba(255,215,0,.10),transparent 50%),var(--card)}
   .top2{border:1.5px solid rgba(192,192,192,.55);background:linear-gradient(180deg,rgba(192,192,192,.10),transparent 50%),var(--card)}
   .top3{border:1.5px solid rgba(205,127,50,.55);background:linear-gradient(180deg,rgba(205,127,50,.10),transparent 50%),var(--card)}
 
-  /* 헤더 */
   .hero{display:flex;flex-direction:column;align-items:center;gap:8px}
   .hero-logo{height:128px; width:auto; display:block}
   .hero-sub{font-size:24px; font-weight:900; letter-spacing:.3px}
-  #lastUpdated{position:absolute; right:0; top:-18px;}  /* 날짜 더 위로 */
+  #lastUpdated{position:absolute; right:0; top:-18px;}
   @media (max-width:480px){ #lastUpdated{top:-22px;} .hero-logo{height:104px} .hero-sub{font-size:22px} }
 
-  /* 지역n위 Chip */
   .chip{display:inline-flex;align-items:center;gap:6px;height:24px;padding:3px 10px;border-radius:9999px;border:1px solid rgba(148,163,184,.34);background:rgba(148,163,184,.12);color:#cbd5e1;font-weight:800;font-size:12px;line-height:1}
-
   .city-line{font-size:1.15rem}
   .team-name{font-size:21px !important}
   @media (max-width:480px){ .team-name{font-size:17px !important} }
@@ -74,35 +68,19 @@
   .score-value{ transform: translateX(-4px); }
   @media (max-width:480px){ .score-value{ transform: translateX(-8px); } }
 
-  /* ── 랭킹 숫자: 항상 세로 가운데 ── */
-  .rank-cell{
-    position:relative;           /* 메달을 절대배치할 기준 */
-    display:flex; flex-direction:column;
-    align-items:center;          /* 숫자 중앙 정렬 */
-    justify-content:center;      /* 숫자 중앙 정렬 */
-    min-height:64px;
-  }
-  .rank-num-ui{line-height:1}    /* 숫자 자체 간격 정리 */
-
-  /* ── 메달: 20% 확대, 기존 가로 배치, '위로만' 이동 ── */
-  .medal-row{
-    position:absolute; left:0; top:-8px;   /* 위로만 이동 => 숫자 위치에 영향 X */
-    display:flex; align-items:center; gap:8px; margin:0;
-    white-space:nowrap;
-  }
+  /* ── 랭킹/메달 레이아웃 ── */
+  .rank-cell{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:64px}
+  .rank-num-ui{line-height:1}
+  .medal-row{position:absolute;left:0;top:-8px;display:flex;align-items:center;gap:8px;margin:0;white-space:nowrap}
   .medal-ico{width:17px;height:17px;border-radius:50%;box-shadow:inset 0 0 0 2px rgba(0,0,0,.18)}
   .medal-g{background:radial-gradient(circle at 30% 30%, #fff6bf, #ffd700 42%, #c09a00 72%)}
   .medal-s{background:radial-gradient(circle at 30% 30%, #ffffff, #c0c0c0 45%, #8a8a8a 75%)}
   .medal-b{background:radial-gradient(circle at 30% 30%, #ffd1a3, #cd7f32 45%, #8b4f1f 75%)}
   .medal-label{font-size:13px;font-weight:800;letter-spacing:.02em;color:#cbd5e1}
+  @media (max-width:480px){ .medal-row{ top:-18px; transform:scale(.95); transform-origin:left top; } }
 
-  /* 모바일: 메달/텍스트를 더 위로(겹침 예방) + 소폭 축소 */
-  @media (max-width:480px){
-    .medal-row{ top:-18px; transform:scale(.95); transform-origin:left top; }
-  }
-
-  /* 다운로드(이미지) — 기존 레이아웃 유지 */
-  .ex-root{width:1080px;background:#0e141c;color:#fff;padding:28px 36px 28px;box-sizing:border-box;-webkit-font-smoothing:antialiased;text-rendering:geometricPrecision}
+  /* 다운로드용(스타일 유지) */
+  .ex-root{width:1080px;background:#0e141c;color:#fff;padding:28px 36px 28px;box-sizing:border-box}
   .ex-header{position:relative; display:flex; align-items:center; justify-content:center; margin-bottom:12px}
   .ex-date{position:absolute; right:0; top:0; font-size:22px; color:#94a3b8; font-weight:700}
   .ex-hero{display:flex;flex-direction:column;align-items:center;gap:6px}
@@ -151,6 +129,7 @@
   <!-- 컨트롤 -->
   <div class="grid grid-cols-1 sm:grid-cols-5 gap-3 items-center">
     <input id="search" type="search" placeholder="팀명/지역 검색…" class="control-lg sm:col-span-2 rounded-xl bg-[#0b111a] border border-[#1f2a3a] px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500" />
+
     <div class="sm:col-span-2 relative">
       <button id="regionToggle" class="control-lg w-full rounded-xl bg-[#0b111a] border border-[#1f2a3a] px-4 py-3 text-left flex items-center justify-between">
         <span id="regionLabel" class="truncate control-label muted">지역 필터 (다중 선택)</span>
@@ -164,7 +143,10 @@
         </div>
       </div>
     </div>
-    <button id="btnExport" class="control-lg sm:col-span-1 rounded-xl bg-[#0b111a] border border-[#1f2a3a] px-4 py-3 hover:bg-[#131a24]">이미지 다운로드</button>
+
+    <button id="btnExport" class="control-lg sm:col-span-1 rounded-xl bg-[#0b111a] border border-[#1f2a3a] px-4 py-3 hover:bg-[#131a24]">
+      이미지 다운로드
+    </button>
   </div>
   <p class="control-lg text-indigo-200/80 text-right -mt-1">
     ※ 기본: <b>현재 화면 순번</b> 기준으로 10개씩 저장. (옵션에서 ‘절대 랭킹’도 선택 가능)
@@ -172,17 +154,19 @@
 
   <!-- 리스트 -->
   <div id="list" class="space-y-3"></div>
-  <div class="flex items-center justify-end"><div class="muted text-sm">총 <span id="rowCount"></span>개 팀</div></div>
+  <div class="flex items-center justify-end">
+    <div class="muted text-sm">총 <span id="rowCount"></span>개 팀</div>
+  </div>
 
   <!-- 상태/오류 -->
   <div id="status" class="flex items-center gap-3 text-sm muted mt-3">
     <div style="width:22px;height:22px;border-radius:9999px;border:3px solid #1f2a3a;border-top-color:#60a5fa;animation:spin .9s linear infinite"></div>
     <span>데이터 불러오는 중…</span>
   </div>
-  <div id="error" class="hidden text-sm text-red-400 mt-2"></div>
+  <pre id="error" class="hidden text-sm text-red-400 mt-2 whitespace-pre-wrap"></pre>
 </div>
 
-<!-- 모달 -->
+<!-- 모달(범위+모드) -->
 <div id="rangeModal" class="hidden"></div>
 
 <script>
@@ -191,33 +175,115 @@
   const GH_BRANCH = 'main';
   const XLSX_FILE = 'division_rank.xlsx';
 
-  function formatDate(d){const z=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}년 ${z(d.getMonth()+1)}월 ${z(d.getDate())}일`;}
-  document.getElementById('lastUpdated').textContent=formatDate(new Date());
-
-  async function latestRawUrl(){
-    const base = `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${GH_BRANCH}/${XLSX_FILE}`;
-    try{
-      const r = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/commits/${GH_BRANCH}`, {cache:'no-store'});
-      if (r.ok){ const j = await r.json(); const sha = j?.sha || j?.commit?.tree?.sha || ''; if (sha) return base + `?v=${sha}`; }
-    }catch(e){}
-    return base;
-  }
-
   const $ = s => document.querySelector(s);
   const numOrNull = v => { const n = Number(v); return isNaN(n) ? null : n; };
   const byRankClass=r=>r===1?'top1':r===2?'top2':r===3?'top3':'';
+  function formatDate(d){const z=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}년 ${z(d.getMonth()+1)}월 ${z(d.getDate())}일`;}
+  document.getElementById('lastUpdated').textContent=formatDate(new Date());
 
-  let BASE=[], FILTERED=[], LOCAL_RANK_MAP=null;
+  let BASE=[], FILTERED=[], LOCAL_RANK_MAP=new Map(), selectedRegions=new Set();
 
-  function buildLocalRankMap(){
-    const subset = FILTERED.slice().sort((a,b)=>(Number(a.rank)||Infinity)-(Number(b.rank)||Infinity));
-    const map = new Map(); subset.forEach((it,idx)=> map.set(`${it.team||''}\u0001${it.city||''}`, idx+1));
-    LOCAL_RANK_MAP = map;
+  /* ---------- 데이터 로더(다중 소스 + 상세 오류 표시) ---------- */
+  function candidateUrls(sha){
+    const ts = Date.now(); // 캐시무력화
+    const list = [
+      `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${GH_BRANCH}/${XLSX_FILE}?t=${ts}`,
+      `https://cdn.jsdelivr.net/gh/${GH_OWNER}/${GH_REPO}@${GH_BRANCH}/${XLSX_FILE}`,
+      `https://cdn.jsdelivr.net/gh/${GH_OWNER}/${GH_REPO}@latest/${XLSX_FILE}`,
+      `https://raw.githack.com/${GH_OWNER}/${GH_REPO}/${GH_BRANCH}/${XLSX_FILE}`,
+    ];
+    if (sha){
+      list.push(
+        `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${sha}/${XLSX_FILE}`,
+        `https://cdn.jsdelivr.net/gh/${GH_OWNER}/${GH_REPO}@${sha}/${XLSX_FILE}`
+      );
+    }
+    return list;
   }
-  function regionalBadge(team, city){
-    if(!LOCAL_RANK_MAP) return '';
-    const n = LOCAL_RANK_MAP.get(`${team||''}\u0001${city||''}`);
-    return (typeof n==='number') ? `<span class="chip">지역${n}위</span>` : '';
+
+  async function fetchSha(){
+    try{
+      const r = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/commits/${GH_BRANCH}`, {cache:'no-store'});
+      if(!r.ok) throw new Error(`GitHub API HTTP ${r.status}`);
+      const j = await r.json();
+      return j?.sha || j?.commit?.tree?.sha || '';
+    }catch(e){ console.warn('[loader] sha fetch failed:', e); return ''; }
+  }
+
+  async function tryLoad(url){
+    const res=await fetch(url,{cache:'no-store'});
+    if(!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+    const ab=await res.arrayBuffer();
+    const wb = XLSX.read(new Uint8Array(ab),{type:'array'});
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    if(!ws) throw new Error('워크북/시트를 찾지 못했습니다.');
+    const rows = XLSX.utils.sheet_to_json(ws,{defval:'',raw:true});
+    if(!Array.isArray(rows) || !rows.length) throw new Error('시트가 비어있거나 파싱 실패');
+    return rows;
+  }
+
+  async function loadData(){
+    const statusEl = $('#status'), errEl = $('#error');
+    statusEl.classList.remove('hidden'); errEl.classList.add('hidden'); errEl.textContent='';
+    const errors = [];
+    try{
+      // 1차: sha 없이 시도
+      const urls1 = candidateUrls('');
+      for(const u of urls1){
+        try{
+          const rows = await tryLoad(u);
+          console.info('[loader] success @', u);
+          await prepare(rows);
+          statusEl.classList.add('hidden');
+          return;
+        }catch(e){
+          errors.push(`${u} → ${e.message}`);
+        }
+      }
+      // 2차: sha 구해서 다시 시도
+      const sha = await fetchSha();
+      const urls2 = candidateUrls(sha).slice(-2); // sha 기반 2개만 추가 시도
+      for(const u of urls2){
+        try{
+          const rows = await tryLoad(u);
+          console.info('[loader] success @', u);
+          await prepare(rows);
+          statusEl.classList.add('hidden');
+          return;
+        }catch(e){
+          errors.push(`${u} → ${e.message}`);
+        }
+      }
+      throw new Error('모든 데이터 소스 실패');
+    }catch(finalErr){
+      statusEl.classList.add('hidden');
+      errEl.classList.remove('hidden');
+      errEl.textContent =
+        `데이터 로드 오류: ${finalErr.message}\n\n시도한 URL과 원인:\n- ` + errors.join('\n- ');
+      console.error('[loader] all failed\n', errors);
+    }
+  }
+
+  /* ---------- 데이터 정규화/렌더 ---------- */
+  function normalize(rows){
+    const keys=Object.keys(rows[0]||{});
+    const pick=(ks,cands)=>{for(const c of cands){const f=ks.find(k=>(k||"").toLowerCase().includes(c.toLowerCase())); if(f) return f} return null};
+    const map={
+      rank:pick(keys,["랭킹","순위","rank","#","no"]),
+      team:pick(keys,["팀","팀명","name","team","클럽"]),
+      city:pick(keys,["지역","연고","도시","city","location"]),
+      score:pick(keys,["점수","score","포인트","point"]),
+      move:pick(keys,["랭킹 변화","증감","변동","delta","updown","전주대비","전월대비"]),
+      scoreChange:pick(keys,["점수 변화","점수 증감","score change","score diff","score_delta"])
+    };
+    return rows.map((r,i)=>({
+      rank: map.rank? (numOrNull(r[map.rank]) ?? (i+1)) : (i+1),
+      team: map.team? r[map.team] : '',
+      city: (map.city? r[map.city] : '').toString().trim(),
+      score: map.score? r[map.score] : '',
+      move: map.move? (r[map.move]===''?0:r[map.move]) : 0,
+      scoreChange: map.scoreChange? (r[map.scoreChange]||0) : null
+    }));
   }
 
   function medalRow(rank, ex=false){
@@ -229,7 +295,6 @@
     const label = rank===1?'GOLD':(rank===2?'SILVER':'BRONZE');
     return `<div class="${rowCls}"><span class="${icoCls} ${ex?'ex-medal-':'medal-'}${t}"></span><span class="${labCls}">${label}</span></div>`;
   }
-
   function movementBadge(m){
     const n=Number(m);
     if(Number.isNaN(n) || n===0) return `<span class="badge badge-stay badge-pill move-badge"><i class="ico dash"></i></span>`;
@@ -244,31 +309,29 @@
     if(num<0) return `<span class="score-down">-${fixed}</span>`;
     return `<span class="score-same">-</span>`;
   }
+  function regionalBadge(team, city){
+    if(!LOCAL_RANK_MAP) return '';
+    const n = LOCAL_RANK_MAP.get(`${team||''}\u0001${city||''}`);
+    return (typeof n==='number') ? `<span class="chip">지역${n}위</span>` : '';
+  }
 
   function cardHTML(it){
     const scoreText = isNaN(Number(it.score)) ? (it.score??'') : Number(it.score).toFixed(1);
     return `
     <div class="card shadow-smooth rounded-2xl px-5 sm:px-7 py-5 ${byRankClass(it.rank)}">
       <div class="grid grid-cols-12 items-center gap-4">
-        <!-- 왼쪽: 메달(위로만 이동) + 랭킹 숫자(세로 가운데) -->
         <div class="col-span-2 sm:col-span-1 rank-cell">
           ${medalRow(it.rank)}
           <div class="rank-num-ui text-3xl sm:text-4xl font-extrabold num">${it.rank}</div>
         </div>
-
-        <!-- 변화/지역n위 -->
         <div class="col-span-3 sm:col-span-3 flex flex-col items-start gap-1.5">
           ${movementBadge(it.move)}
           ${regionalBadge(it.team, it.city)}
         </div>
-
-        <!-- 팀/지역 -->
         <div class="col-span-4 sm:col-span-5">
           <div class="team-name font-semibold">${it.team}</div>
           <div class="city-line muted mt-0.5">${it.city || ''}</div>
         </div>
-
-        <!-- 점수 -->
         <div class="col-span-3 sm:col-span-3 text-right">
           <div class="accent num score-value score-value-ui font-extrabold">${scoreText}</div>
           <div class="mt-1.5 flex justify-end items-baseline gap-1.5">
@@ -279,32 +342,35 @@
     </div>`;
   }
 
-  const search = $('#search'), list = $('#list'), rowCount = $('#rowCount');
-  const regionToggle=$('#regionToggle'), regionPanel=$('#regionPanel'), regionList=$('#regionList'), regionLabel=$('#regionLabel']);
-  const regionReset=$('#regionReset'), regionApply=$('#regionApply'); const selectedRegions=new Set();
+  function buildLocalRankMap(){
+    const subset = FILTERED.slice().sort((a,b)=>(Number(a.rank)||Infinity)-(Number(b.rank)||Infinity));
+    const map = new Map(); subset.forEach((it,idx)=> map.set(`${it.team||''}\u0001${it.city||''}`, idx+1));
+    LOCAL_RANK_MAP = map;
+  }
 
+  async function prepare(rows){
+    BASE = normalize(rows);
+    buildRegionDropdown(); updateRegionLabel();
+    FILTERED=[...BASE];
+    buildLocalRankMap();
+    render();
+  }
+
+  /* ---------- UI: 필터/검색 ---------- */
+  const list = $('#list'), rowCount = $('#rowCount'), regionPanel=$('#regionPanel'), regionList=$('#regionList'), regionLabel=$('#regionLabel');
   function regionOrderKey(name){
     const n=(name||'').trim(), starts=p=>n.startsWith(p);
-    if(n==='서울'||starts('서울')) return 1;
-    if(n==='경기'||starts('경기')) return 2;
-    if(n==='인천'||starts('인천')) return 3;
+    if(n==='서울'||starts('서울')) return 1; if(n==='경기'||starts('경기')) return 2; if(n==='인천'||starts('인천')) return 3;
     if(n.includes('강원')) return 4;
     if(n.includes('충청')||starts('충남')||starts('충북')||starts('대전')||starts('세종')) return 5;
     if(n.includes('전라')||starts('전남')||starts('전북')||starts('광주')) return 6;
     if(n.includes('경상')||starts('경남')||starts('경북')||starts('부산')||starts('대구')||starts('울산')) return 7;
-    if(n.includes('제주')) return 8;
-    return 9;
+    if(n.includes('제주')) return 8; return 9;
   }
-
   function buildRegionDropdown(){
-    let regions = Array.from(new Set(BASE.map(b => (b.city||'').trim()).filter(Boolean)));
-    regions.sort((a,b)=>{ const oa=regionOrderKey(a), ob=regionOrderKey(b); return oa===ob ? a.localeCompare(b,'ko') : oa-ob; });
-    regionList.innerHTML = regions.map(r => `
-      <label class="region-item">
-        <input type="checkbox" value="${r}" class="regionOpt">
-        <span>${r}</span>
-      </label>
-    `).join('');
+    const regions = [...new Set(BASE.map(b => (b.city||'').trim()).filter(Boolean))]
+      .sort((a,b)=>{ const oa=regionOrderKey(a), ob=regionOrderKey(b); return oa===ob ? a.localeCompare(b,'ko') : oa-ob; });
+    regionList.innerHTML = regions.map(r => `<label class="region-item"><input type="checkbox" value="${r}"><span>${r}</span></label>`).join('');
   }
   function updateRegionLabel(){
     const regs=[...selectedRegions];
@@ -315,7 +381,7 @@
     return data.filter(d => selectedRegions.has((d.city||'').trim()));
   }
   function applyFilter(){
-    const q=(search.value||'').toLowerCase();
+    const q=($('#search').value||'').toLowerCase();
     const regionFiltered = getFilteredByRegions(BASE);
     FILTERED = regionFiltered.filter(it => ((it.team||'')+' '+(it.city||'')).toLowerCase().includes(q));
     buildLocalRankMap(); render();
@@ -325,76 +391,32 @@
     list.innerHTML = FILTERED.map(cardHTML).join('');
   }
 
-  // 드롭다운 핸들러
-  regionToggle.addEventListener('click', e=>{ e.stopPropagation(); regionPanel.classList.toggle('hidden'); });
+  // region panel handlers
+  $('#regionToggle').addEventListener('click', e=>{ e.stopPropagation(); regionPanel.classList.toggle('hidden'); });
   document.addEventListener('click', ()=> regionPanel.classList.add('hidden'));
   regionPanel.addEventListener('click', e=>e.stopPropagation());
-  document.getElementById('regionReset').addEventListener('click', e=>{
-    e.preventDefault(); selectedRegions.clear();
-    const opts=regionPanel.querySelectorAll('.region-item input'); opts.forEach(i=>i.checked=false);
-    updateRegionLabel();
-  });
-  document.getElementById('regionApply').addEventListener('click', e=>{ e.preventDefault(); applyFilter(); regionPanel.classList.add('hidden'); });
   regionPanel.addEventListener('change', e=>{
     if(e.target && e.target.type==='checkbox'){
       e.target.checked ? selectedRegions.add(e.target.value) : selectedRegions.delete(e.target.value);
       updateRegionLabel();
     }
   });
-  search.addEventListener('input', applyFilter);
+  $('#regionReset').addEventListener('click', e=>{
+    e.preventDefault(); selectedRegions.clear();
+    regionPanel.querySelectorAll('input[type="checkbox"]').forEach(i=>i.checked=false);
+    updateRegionLabel();
+  });
+  $('#regionApply').addEventListener('click', e=>{ e.preventDefault(); applyFilter(); regionPanel.classList.add('hidden'); });
+  $('#search').addEventListener('input', applyFilter);
 
-  // 데이터 로드
-  async function loadData(){
-    document.getElementById('status').classList.remove('hidden');
-    document.getElementById('error').classList.add('hidden');
-    try{
-      const url = await latestRawUrl();
-      const res=await fetch(url,{cache:'no-store'});
-      if(!res.ok) throw new Error(`HTTP ${res.status}`);
-      const ab=await res.arrayBuffer();
-      const wb=XLSX.read(new Uint8Array(ab),{type:'array'});
-      const ws=wb.Sheets[wb.SheetNames[0]];
-      const rows=XLSX.utils.sheet_to_json(ws,{defval:'',raw:true});
-      if(!rows.length) throw new Error('시트가 비어있습니다.');
-
-      const keys=Object.keys(rows[0]||{});
-      const pick=(ks,cands)=>{for(const c of cands){const f=ks.find(k=>(k||"").toLowerCase().includes(c.toLowerCase())); if(f) return f} return null};
-      const map={
-        rank:pick(keys,["랭킹","순위","rank"]),
-        team:pick(keys,["팀","팀명","name","team","클럽"]),
-        city:pick(keys,["지역","연고","도시","city","location"]),
-        score:pick(keys,["점수","score","포인트","point"]),
-        move:pick(keys,["랭킹 변화","증감","변동","delta","updown","전주대비","전월대비"]),
-        scoreChange:pick(keys,["점수 변화","점수 증감","score change","score diff","score_delta"])
-      };
-
-      BASE=rows.map((r,i)=>({
-        rank:map.rank? (numOrNull(r[map.rank]) ?? (i+1)) : (i+1),
-        team:map.team?r[map.team]:'',
-        city:(map.city?r[map.city]:'').toString().trim(),
-        score:map.score?r[map.score]:'',
-        move:map.move?(r[map.move]===''?0:r[map.move]):0,
-        scoreChange:map.scoreChange?(r[map.scoreChange]||0):null
-      }));
-
-      buildRegionDropdown(); updateRegionLabel();
-      FILTERED=[...BASE]; buildLocalRankMap(); render();
-      document.getElementById('status').classList.add('hidden');
-    }catch(err){
-      document.getElementById('status').classList.add('hidden');
-      const e=document.getElementById('error');
-      e.classList.remove('hidden'); e.textContent=`데이터 로드 오류: ${err.message}`;
-    }
-  }
-
-  // 이미지 다운로드(헤더 포함) — 기존 로직 유지
+  /* ---------- 다운로드(기존 유지) ---------- */
   function buildRanges(mode){
     const n=FILTERED.length, maxRank=Math.max(...FILTERED.map(v=>Number(v.rank)||0),0);
     if(mode==='rank'){ const last=Math.ceil(maxRank/10), arr=[]; for(let g=0; g<last; g++) arr.push({label:`절대 랭킹 ${g*10+1}–${(g+1)*10}위`, value:`${g*10+1}-${(g+1)*10}`}); return arr; }
     const last=Math.ceil(n/10), arr=[]; for(let g=0; g<last; g++){ const s=g*10+1, e=Math.min((g+1)*10,n); arr.push({label:`현재 목록 ${s}–${e}팀`, value:`${s}-${e}`}); } return arr;
   }
   function openRangeModal(){
-    const modal=document.getElementById('rangeModal');
+    const modal=$('#rangeModal');
     modal.innerHTML=`<div class="modal-backdrop" role="dialog" aria-modal="true">
       <div class="modal-card" onclick="event.stopPropagation()">
         <div class="flex items-center justify-between mb-3"><h2 class="text-lg font-semibold">이미지 다운로드</h2><button id="mdClose" class="btn-strong bg-[#0b111a] border border-[#1f2a3a]">닫기</button></div>
@@ -409,16 +431,15 @@
         </div>
         <div class="mt-4 flex items-center justify-end gap-2"><button id="mdCancel" class="btn-strong bg-[#0b111a] border border-[#1f2a3a]">취소</button><button id="mdDownload" class="btn-strong bg-indigo-600 hover:bg-indigo-500">다운로드</button></div>
       </div></div>`;
-    const repaint=()=>{ const m=document.getElementById('mdMode').value; const list=buildRanges(m); const sel=document.getElementById('mdRange'); sel.innerHTML=list.map(r=>`<option value="${r.value}">${r.label}</option>`).join('')||'<option>저장할 항목이 없습니다</option>'; };
+    const repaint=()=>{ const m=$('#mdMode').value; const list=buildRanges(m); $('#mdRange').innerHTML=list.map(r=>`<option value="${r.value}">${r.label}</option>`).join('')||'<option>저장할 항목이 없습니다</option>'; };
     repaint(); modal.classList.remove('hidden');
-    modal.querySelector('#mdMode').onchange=repaint;
+    $('#mdMode').onchange=repaint;
     const close=()=>modal.classList.add('hidden');
     modal.querySelector('.modal-backdrop').onclick=e=>{ if(e.target===e.currentTarget) close(); };
-    modal.querySelector('#mdClose').onclick=close;
-    modal.querySelector('#mdCancel').onclick=close;
-    modal.querySelector('#mdDownload').onclick=async ()=>{ const mode=document.getElementById('mdMode').value; const val=(document.getElementById('mdRange').value||'1-10'); await doExport(mode,val); close(); };
+    $('#mdClose').onclick=close; $('#mdCancel').onclick=close;
+    $('#mdDownload').onclick=async ()=>{ const mode=$('#mdMode').value; const val=($('#mdRange').value||'1-10'); await doExport(mode,val); close(); };
   }
-  document.getElementById('btnExport').addEventListener('click', openRangeModal);
+  $('#btnExport').addEventListener('click', openRangeModal);
 
   async function doExport(mode, rangeStr){
     const [a,b]=(rangeStr||'1-10').split('-').map(n=>parseInt(n,10));
@@ -429,19 +450,19 @@
 
     const stage=document.createElement('div'); stage.className='ex-root';
     stage.style.width='1080px'; stage.style.height='auto';
-    const logoSrc=(document.getElementById('bdrLogoImg')||{}).src||'';
+    const logoSrc=($('#bdrLogoImg')||{}).src||'';
     stage.innerHTML=`
       <div class="ex-header">
         <div class="ex-hero">
           ${logoSrc ? `<img src="${logoSrc}" class="ex-logo" crossorigin="anonymous" />` : `<div class="ex-sub">BDR RANKING</div>`}
           <div class="ex-sub">일반부</div>
         </div>
-        <div class="ex-date">${document.getElementById('lastUpdated').textContent}</div>
+        <div class="ex-date">${$('#lastUpdated').textContent}</div>
       </div>
       <div id="exportList" class="ex-list"></div>`;
     document.body.appendChild(stage);
 
-    document.getElementById('exportList').innerHTML=subset.map(it=>{
+    $('#exportList').innerHTML=subset.map(it=>{
       const n=Number(it.move);
       const scoreText=isNaN(Number(it.score))?(it.score??''):Number(it.score).toFixed(1);
       const diff=it.scoreChange;
@@ -470,6 +491,7 @@
     finally{ stage.remove(); }
   }
 
+  // 부트스트랩
   (async ()=>{ await loadData(); })();
 </script>
 </body>
