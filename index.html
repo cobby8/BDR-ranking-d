@@ -27,7 +27,7 @@
   .control-lg{font-size:20px} .control-label{font-size:18px}
   @media (max-width:480px){ .control-lg{font-size:18px} .control-label{font-size:16px} }
 
-  /* 랭킹 변화 뱃지 */
+  /* 뱃지 */
   .badge{border-radius:9999px;border:1px solid rgba(148,163,184,.34);line-height:1;font-weight:800;font-size:1rem}
   .badge-grid{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:28px;padding:4px 12px}
   .badge-pill{display:inline-flex;align-items:center;justify-content:center;height:28px;padding:4px 12px}
@@ -48,20 +48,31 @@
   .top2{border:1.5px solid rgba(192,192,192,.55);background:linear-gradient(180deg,rgba(192,192,192,.10),transparent 50%),var(--card)}
   .top3{border:1.5px solid rgba(205,127,50,.55);background:linear-gradient(180deg,rgba(205,127,50,.10),transparent 50%),var(--card)}
 
-  /* 모바일 최적화(바형) */
-  .team-name{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  @media (max-width:480px){ .team-name{ font-size:1.25rem !important; } }
-  @media (max-width:380px){ .team-name{ font-size:1.125rem !important; } }
+  /* === 헤더(로고 200% + 부제) === */
+  .hero{display:flex;flex-direction:column;align-items:center;gap:8px}
+  .hero-logo{height:128px; width:auto; display:block} /* 200% (기존 64px → 128px) */
+  .hero-sub{font-size:24px; font-weight:900; letter-spacing:.3px}
+  @media (max-width:480px){
+    .hero-logo{height:104px} /* 모바일에서 살짝 축소해 화면 안정성 확보 */
+    .hero-sub{font-size:22px}
+  }
 
-  /* 점수 값을 블록 안쪽으로 더 이동 */
+  /* 카드 내 작은 텍스트 소폭 확대 */
+  .medal-text{font-size:12px}          /* 기존 11px → 12px */
+  @media (min-width:640px){ .medal-text{font-size:13px} }
+  .city-line{font-size:1.15rem}        /* 약간 상향 */
+
+  /* 점수 정렬 */
   .score-value{ transform: translateX(-4px); }
   @media (max-width:480px){ .score-value{ transform: translateX(-8px); } }
 
-  /* ── 캡처(다운로드) : 고정 1080×1350 ── */
-  .ex-root{width:1080px;height:1350px;background:#0e141c;color:#fff;padding:32px 36px 28px;box-sizing:border-box;-webkit-font-smoothing:antialiased;text-rendering:geometricPrecision}
-  .ex-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-  .ex-title{font-size:36px;font-weight:800;letter-spacing:.2px}
-  .ex-date{font-size:20px;color:#94a3b8;font-weight:700}
+  /* ── 캡처(다운로드) 스타일 ── */
+  .ex-root{width:1080px; background:#0e141c;color:#fff;padding:28px 36px 28px;box-sizing:border-box;-webkit-font-smoothing:antialiased;text-rendering:geometricPrecision}
+  .ex-header{position:relative; display:flex; align-items:center; justify-content:center; margin-bottom:12px}
+  .ex-date{position:absolute; right:0; top:0; font-size:22px; color:#94a3b8; font-weight:700}
+  .ex-hero{display:flex;flex-direction:column;align-items:center;gap:6px}
+  .ex-logo{height:128px; width:auto; display:block}
+  .ex-sub{font-size:28px; font-weight:900; letter-spacing:.3px}
   .ex-list{display:flex;flex-direction:column;gap:10px}
   .ex-card{background:#131a24;border:1px solid #1f2a3a;border-radius:20px;padding:14px 18px}
   .ex-grid{display:grid;grid-template-columns:72px 188px 1fr 210px;align-items:center;column-gap:14px}
@@ -81,19 +92,20 @@
   .modal-card{background:#0b111a;border:1px solid #1f2a3a;border-radius:14px;width:min(92vw,560px);padding:20px}
   .btn-strong{font-size:18px;padding:.65rem 1rem;border-radius:.75rem}
 
-  /* 디버그 배지(로고 경로 확인용) */
+  /* 로고 경로 디버그(옵션) */
   .logo-debug{position:fixed;left:8px;top:8px;z-index:70;padding:6px 10px;border-radius:8px;background:#0b111a;border:1px solid #1f2a3a;color:#9ca3af;font-size:12px;max-width:88vw;white-space:pre-wrap}
 </style>
 </head>
 <body class="min-h-screen text-white antialiased">
 <div class="max-w-6xl mx-auto px-4 py-6">
 
-  <!-- 헤더: 로고만 중앙, 2배(64px). 날짜는 우측 상단 -->
-  <div class="relative mb-3">
-    <div class="flex items-center justify-center">
-      <img id="bdrLogoImg" alt="BDR" class="block h-16 w-auto" />
+  <!-- 헤더: 로고 중앙 + 부제 + 날짜 -->
+  <div class="relative mb-4">
+    <div class="hero">
+      <img id="bdrLogoImg" alt="BDR" class="hero-logo" />
+      <div class="hero-sub">일반부</div>
     </div>
-    <span id="lastUpdated" class="absolute right-0 top-0 text-lg font-semibold muted"></span>
+    <span id="lastUpdated" class="absolute right-0 top-0 text-xl font-semibold muted"></span>
   </div>
 
   <!-- 컨트롤 -->
@@ -140,7 +152,7 @@
 <div id="rangeModal" class="hidden"></div>
 
 <script>
-  /* ------------ 로고: onerror 체인 + 오버라이드/디버그 유지 ------------ */
+  /* ------------ 로고: onerror 체인 + 오버라이드/디버그 ------------ */
   (function mountLogo(){
     const img = document.getElementById('bdrLogoImg');
     const qp = new URLSearchParams(location.search);
@@ -163,6 +175,7 @@
       log('try: '+url);
       img.onload = ()=>{ log('OK:  '+url); img.style.display='block'; };
       img.onerror= ()=>{ next(); };
+      img.crossOrigin = "anonymous";
       img.src = url;
     }
 
@@ -197,11 +210,7 @@
 
     function next(){
       const url = queue.shift();
-      if (!url){
-        // 최종 폴백: 로고가 없으면 여백 유지(텍스트도 제거)
-        img.remove();
-        return;
-      }
+      if (!url){ img.remove(); return; }
       applySrc(url);
     }
     next();
@@ -257,14 +266,14 @@
       <div class="grid grid-cols-12 items-center gap-4">
         <div class="col-span-2 sm:col-span-1 flex flex-col items-start">
           <div class="text-3xl sm:text-4xl font-extrabold num">${it.rank}</div>
-          <div class="text-[11px] mt-1">${it.rank===1?'GOLD':it.rank===2?'SILVER':it.rank===3?'BRONZE':''}</div>
+          <div class="medal-text mt-1">${it.rank===1?'GOLD':it.rank===2?'SILVER':it.rank===3?'BRONZE':''}</div>
         </div>
         <div class="col-span-3 sm:col-span-3 flex flex-col items-start gap-1.5">
           ${movementBadge(it.move)}
         </div>
         <div class="col-span-4 sm:col-span-5">
           <div class="team-name text-2xl font-semibold">${it.team}</div>
-          <div class="text-lg muted mt-0.5">${it.city || ''}</div>
+          <div class="city-line muted mt-0.5">${it.city || ''}</div>
         </div>
         <div class="col-span-3 sm:col-span-3 text-right">
           <div class="text-3xl sm:text-4xl font-extrabold accent num score-value">${scoreText}</div>
@@ -340,18 +349,6 @@
   search.addEventListener('input', applyFilter);
 
   // 데이터 로드
-  async function latestRawUrl(){
-    const base = `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${GH_BRANCH}/${XLSX_FILE}`;
-    try{
-      const r = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/commits/${GH_BRANCH}`, {cache:'no-store'});
-      if (r.ok){
-        const j = await r.json();
-        const sha = j?.sha || j?.commit?.tree?.sha || '';
-        if (sha) return base + `?v=${sha}`;
-      }
-    }catch(e){}
-    return base;
-  }
   async function loadData(){
     document.getElementById('status').classList.remove('hidden');
     document.getElementById('error').classList.add('hidden');
@@ -395,7 +392,7 @@
     }
   }
 
-  /* ------------ 이미지 다운로드(유지) ------------ */
+  /* ------------ 이미지 다운로드 ------------ */
   function buildRanges(mode){
     if(mode==='rank'){
       const maxRank = Math.max(...FILTERED.map(v=>Number(v.rank)||0), 0);
@@ -417,6 +414,7 @@
       return ranges;
     }
   }
+
   function openRangeModal(){
     const modal = document.getElementById('rangeModal');
     modal.innerHTML = `
@@ -471,6 +469,8 @@
 
   async function doExport(mode, rangeStr){
     const [a,b]=(rangeStr||'1-10').split('-').map(n=>parseInt(n,10));
+
+    // 1) 대상 셋
     let subset=[];
     if(mode==='rank'){
       subset = FILTERED.filter(it => Number(it.rank)>=a && Number(it.rank)<=b)
@@ -480,15 +480,24 @@
     }
     if(!subset.length){ alert('해당 범위에 팀이 없습니다. 범위를 바꿔주세요.'); return; }
 
+    // 2) 오프스크린 스테이지 (헤더: 로고+일반부+날짜 동일 양식)
     const stage=document.createElement('div'); stage.className='ex-root';
+    stage.style.width = '1080px';    /* 고정 너비 */
+    stage.style.height = 'auto';     /* 높이는 이후 동적 계산 */
+    const logoSrc = (document.getElementById('bdrLogoImg')||{}).src || '';
     stage.innerHTML=`
       <div class="ex-header">
-        <div class="ex-title">BDR 랭킹 - 일반부</div>
+        <div class="ex-hero">
+          ${logoSrc ? `<img src="${logoSrc}" class="ex-logo" crossOrigin="anonymous" />` : `<div class="ex-sub">BDR RANKING</div>`}
+          <div class="ex-sub">일반부</div>
+        </div>
         <div class="ex-date">${document.getElementById('lastUpdated').textContent}</div>
       </div>
       <div id="exportList" class="ex-list"></div>`;
+
     document.body.appendChild(stage);
 
+    // 3) 카드 렌더
     document.getElementById('exportList').innerHTML = subset.map(it=>{
       const n=Number(it.move);
       const scoreText=isNaN(Number(it.score))?(it.score??''):Number(it.score).toFixed(1);
@@ -499,7 +508,7 @@
             ? `<span class="ex-up num">+${Math.abs(Number(diff)).toFixed(1)}</span>`
             : `<span class="ex-down num">-${Math.abs(Number(diff)).toFixed(1)}</span>`);
       const moveHTML=Number.isNaN(n)||n===0
-        ? `<span class="badge badge-stay ex-pill"><i class="ico dash"></i></span>`
+        ? `<span class="badge ex-same ex-pill"><i class="ico dash"></i></span>`
         : (n>0
             ? `<span class="badge badge-up ex-gridbadge"><i class="ico plus"></i><span class="num">${n}</span></span>`
             : `<span class="badge badge-down ex-gridbadge"><i class="ico minus"></i><span class="num">${Math.abs(n)}</span></span>`);
@@ -521,8 +530,20 @@
     }).join('');
 
     try{
+      // 4) 레이아웃 안정화 후 실제 높이 계산 → 자르지 않고 전체 캡처
       await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
-      const canvas=await html2canvas(stage,{backgroundColor:'#0e141c', useCORS:true, allowTaint:false, width:1080, height:1350, windowWidth:1080, windowHeight:1350, scale:2});
+      const neededHeight = Math.max(1350, stage.scrollHeight);   // 최소 1350, 콘텐츠가 더 크면 늘림
+      stage.style.height = neededHeight + 'px';
+
+      const canvas=await html2canvas(stage,{
+        backgroundColor:'#0e141c',
+        useCORS:true, allowTaint:false,
+        width:1080, height:neededHeight,
+        windowWidth:1080, windowHeight:neededHeight,
+        scale:2,
+        scrollY: -window.scrollY
+      });
+
       const aTag=document.createElement('a');
       aTag.download=`bdr_ranking_${mode==='rank'?'rank':'list'}_${a}-${b}_${new Date().toISOString().slice(0,10)}.png`;
       aTag.href=canvas.toDataURL('image/png'); aTag.click();
