@@ -223,7 +223,7 @@
   function regionalBadge(team, city){
     if(!LOCAL_RANK_MAP) return '';
     const n = LOCAL_RANK_MAP.get(`${team||''}\u0001${city||''}`);
-    return (typeof n==='number') ? `<span class="chip">지역 랭킹 ${n}위</span>` : '';
+    return (typeof n==='number') ? `<span class="chip">지역${n}위</span>` : '';
   }
 
   /* 메달 HTML */
