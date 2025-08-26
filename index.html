@@ -15,8 +15,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@500;700;800;900&display=swap" rel="stylesheet">
 
-<!-- 로고 즉시 로딩 -->
-<link rel="preload" as="image" href="/assets/bdr-logo.png" />
+<!-- 로고 즉시 로딩 (CORS 허용 CDN + 커밋 고정) -->
+<link rel="preload" as="image"
+  href="https://cdn.jsdelivr.net/gh/cobby8/BDR-ranking-d@c4eb7d9aeb7e32de9ab7bb2f2e9b84e23b470f4e/bdr-logo.png"
+  crossorigin />
 
 <meta name="color-scheme" content="dark" />
 <style>
@@ -72,16 +74,15 @@
   .medal-b{background:radial-gradient(circle at 30% 30%, #ffd1a3, #cd7f32 45%, #8b4f1f 75%)}
   .medal-label{font-size:12px;font-weight:800;letter-spacing:.02em;color:#cbd5e1}
 
-  /* 지역 랭킹 Chip (복구) */
+  /* 지역 랭킹 Chip */
   .chip{display:inline-flex;align-items:center;gap:6px;height:24px;padding:3px 10px;border-radius:9999px;border:1px solid rgba(148,163,184,.34);background:rgba(148,163,184,.12);color:#cbd5e1;font-weight:800;font-size:12px;line-height:1}
 
   /* 텍스트 가독성 상향 */
   .city-line{font-size:1.15rem}
 
-  /* 팀명/점수 폰트 축소 (요청분 반영) */
+  /* 팀명/점수 폰트 조정 (요청 반영) */
   .team-name{font-size:21px !important}
   @media (max-width:480px){ .team-name{font-size:17px !important} }
-
   .score-value-ui{font-size:31px !important}
   @media (max-width:480px){ .score-value-ui{font-size:25px !important} }
 
@@ -126,10 +127,14 @@
 <body class="min-h-screen text-white antialiased">
 <div class="max-w-6xl mx-auto px-4 py-6">
 
-  <!-- 헤더: 로고 중앙 + 부제 + 날짜 (로고 즉시 노출) -->
+  <!-- 헤더: 로고 중앙 + 부제 + 날짜 (지연 없이 즉시 노출) -->
   <div class="relative mb-4">
     <div class="hero">
-      <img id="bdrLogoImg" src="/assets/bdr-logo.svg" alt="BDR" class="hero-logo" loading="eager" fetchpriority="high" decoding="async" />
+      <img id="bdrLogoImg"
+           src="https://cdn.jsdelivr.net/gh/cobby8/BDR-ranking-d@c4eb7d9aeb7e32de9ab7bb2f2e9b84e23b470f4e/bdr-logo.png"
+           alt="BDR"
+           class="hero-logo"
+           loading="eager" fetchpriority="high" decoding="async" crossorigin="anonymous" />
       <div class="hero-sub">일반부</div>
     </div>
     <span id="lastUpdated" class="absolute right-0 top-0 text-xl font-semibold muted"></span>
@@ -332,7 +337,6 @@
     regionList.querySelectorAll('.regionOpt').forEach(i=>i.checked=false); updateRegionLabel();
   });
   regionApply.addEventListener('click', e=>{ e.preventDefault(); applyFilter(); regionPanel.classList.add('hidden'); });
-
   regionList.addEventListener('change', e=>{
     if(e.target.classList.contains('regionOpt')){
       e.target.checked ? selectedRegions.add(e.target.value) : selectedRegions.delete(e.target.value);
@@ -481,7 +485,7 @@
     stage.innerHTML=`
       <div class="ex-header">
         <div class="ex-hero">
-          ${logoSrc ? `<img src="${logoSrc}" class="ex-logo" />` : `<div class="ex-sub">BDR RANKING</div>`}
+          ${logoSrc ? `<img src="${logoSrc}" class="ex-logo" crossorigin="anonymous" />` : `<div class="ex-sub">BDR RANKING</div>`}
           <div class="ex-sub">일반부</div>
         </div>
         <div class="ex-date">${document.getElementById('lastUpdated').textContent}</div>
