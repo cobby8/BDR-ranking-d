@@ -72,7 +72,7 @@
   /* 텍스트 가독성 상향 */
   .city-line{font-size:1.15rem}
 
-  /* 팀명/점수 폰트 조정 (요청 반영) */
+  /* 팀명/점수 폰트 */
   .team-name{font-size:21px !important}
   @media (max-width:480px){ .team-name{font-size:17px !important} }
   .score-value-ui{font-size:31px !important}
@@ -82,16 +82,26 @@
   .score-value{ transform: translateX(-4px); }
   @media (max-width:480px){ .score-value{ transform: translateX(-8px); } }
 
-  /* ---- 메달 그래픽: 20% 확대 + 랭킹 숫자 위로 ---- */
+  /* ---- 메달 그래픽: 20% 확대 ---- */
   .rank-cell{display:flex;flex-direction:column;align-items:flex-start;gap:6px}
-  /* UI용 */
+
+  /* UI용 (데스크톱) */
   .medal-row{display:flex;align-items:center;gap:8px;margin:0 0 2px 0}
   .medal-ico{width:17px;height:17px;border-radius:50%;box-shadow:inset 0 0 0 2px rgba(0,0,0,.18)}
   .medal-g{background:radial-gradient(circle at 30% 30%, #fff6bf, #ffd700 42%, #c09a00 72%)}
   .medal-s{background:radial-gradient(circle at 30% 30%, #ffffff, #c0c0c0 45%, #8a8a8a 75%)}
   .medal-b{background:radial-gradient(circle at 30% 30%, #ffd1a3, #cd7f32 45%, #8b4f1f 75%)}
   .medal-label{font-size:13px;font-weight:800;letter-spacing:.02em;color:#cbd5e1}
-  /* 다운로드용 */
+
+  /* 모바일: 숫자 세로 가운데, 메달은 숫자 위 ‘절대’ 배치 + 레이블 숨김 */
+  @media (max-width:480px){
+    .rank-cell{position:relative;justify-content:center;min-height:64px}
+    .rank-num-ui{line-height:1; align-self:center;}
+    .medal-row{position:absolute;left:0;top:6px;margin:0}  /* 숫자만 가운데, 메달은 위쪽 */
+    .medal-label{display:none}                           /* 폭 절약: 텍스트 숨김 */
+  }
+
+  /* 다운로드용(이미지): 레이아웃 변경 없음 */
   .ex-medal-row{display:flex;align-items:center;gap:8px;margin:0 0 2px 0}
   .ex-medal-ico{width:19px;height:19px;border-radius:50%;box-shadow:inset 0 0 0 2px rgba(0,0,0,.18)}
   .ex-medal-g{background:radial-gradient(circle at 30% 30%, #fff6bf, #ffd700 42%, #c09a00 72%)}
@@ -129,7 +139,7 @@
 <body class="min-h-screen text-white antialiased">
 <div class="max-w-6xl mx-auto px-4 py-6">
 
-  <!-- 헤더: 로고 중앙 + 부제 + 날짜 (지연 없이 즉시 노출) -->
+  <!-- 헤더 -->
   <div class="relative mb-4">
     <div class="hero">
       <img id="bdrLogoImg"
@@ -225,7 +235,7 @@
   function regionalBadge(team, city){
     if(!LOCAL_RANK_MAP) return '';
     const n = LOCAL_RANK_MAP.get(`${team||''}\u0001${city||''}`);
-    return (typeof n==='number') ? `<span class="chip">지역${n}위</span>` : '';
+    return (typeof n==='number') ? `<span class="chip">지역 랭킹 ${n}위</span>` : '';
   }
 
   /* 메달 HTML (UI/ex 공용) */
@@ -261,10 +271,10 @@
     return `
     <div class="card shadow-smooth rounded-2xl px-5 sm:px-7 py-5 ${byRankClass(it.rank)}">
       <div class="grid grid-cols-12 items-center gap-4">
-        <!-- 왼쪽: 메달(위) + 랭킹 숫자(아래) -->
+        <!-- 왼쪽: 메달(위, 모바일 절대배치) + 랭킹 숫자(가운데) -->
         <div class="col-span-2 sm:col-span-1 rank-cell">
           ${medalRow(it.rank)}
-          <div class="text-3xl sm:text-4xl font-extrabold num">${it.rank}</div>
+          <div class="rank-num-ui text-3xl sm:text-4xl font-extrabold num">${it.rank}</div>
         </div>
 
         <!-- 랭킹 변화/지역 랭킹 -->
@@ -372,7 +382,7 @@
       const pick=(ks,cands)=>{for(const c of cands){const f=ks.find(k=>(k||"").toLowerCase().includes(c.toLowerCase())); if(f) return f} return null};
       const map={
         rank:pick(keys,["랭킹","순위","rank"]),
-        team:pick(keys,["팀","팀명","name","team","클ub","클럽"]),
+        team:pick(keys,["팀","팀명","name","team","클럽"]),
         city:pick(keys,["지역","연고","도시","city","location"]),
         score:pick(keys,["점수","score","포인트","point"]),
         move:pick(keys,["랭킹 변화","증감","변동","delta","updown","전주대비","전월대비"]),
