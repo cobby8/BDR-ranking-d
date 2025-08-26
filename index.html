@@ -66,14 +66,6 @@
     .hero-sub{font-size:22px}
   }
 
-  /* 메달 그래픽 */
-  .medal-row{display:flex;align-items:center;gap:6px;margin-top:2px}
-  .medal-ico{width:14px;height:14px;border-radius:50%;box-shadow:inset 0 0 0 2px rgba(0,0,0,.18)}
-  .medal-g{background:radial-gradient(circle at 30% 30%, #fff6bf, #ffd700 42%, #c09a00 72%)}
-  .medal-s{background:radial-gradient(circle at 30% 30%, #ffffff, #c0c0c0 45%, #8a8a8a 75%)}
-  .medal-b{background:radial-gradient(circle at 30% 30%, #ffd1a3, #cd7f32 45%, #8b4f1f 75%)}
-  .medal-label{font-size:9px;font-weight:800;letter-spacing:.02em;color:#cbd5e1}
-
   /* 지역 랭킹 Chip */
   .chip{display:inline-flex;align-items:center;gap:6px;height:24px;padding:3px 10px;border-radius:9999px;border:1px solid rgba(148,163,184,.34);background:rgba(148,163,184,.12);color:#cbd5e1;font-weight:800;font-size:12px;line-height:1}
 
@@ -89,6 +81,23 @@
   /* 점수 위치 미세 보정 */
   .score-value{ transform: translateX(-4px); }
   @media (max-width:480px){ .score-value{ transform: translateX(-8px); } }
+
+  /* ---- 메달 그래픽: 20% 확대 + 랭킹 숫자 위로 ---- */
+  .rank-cell{display:flex;flex-direction:column;align-items:flex-start;gap:6px}
+  /* UI용 */
+  .medal-row{display:flex;align-items:center;gap:8px;margin:0 0 2px 0}
+  .medal-ico{width:17px;height:17px;border-radius:50%;box-shadow:inset 0 0 0 2px rgba(0,0,0,.18)}
+  .medal-g{background:radial-gradient(circle at 30% 30%, #fff6bf, #ffd700 42%, #c09a00 72%)}
+  .medal-s{background:radial-gradient(circle at 30% 30%, #ffffff, #c0c0c0 45%, #8a8a8a 75%)}
+  .medal-b{background:radial-gradient(circle at 30% 30%, #ffd1a3, #cd7f32 45%, #8b4f1f 75%)}
+  .medal-label{font-size:13px;font-weight:800;letter-spacing:.02em;color:#cbd5e1}
+  /* 다운로드용 */
+  .ex-medal-row{display:flex;align-items:center;gap:8px;margin:0 0 2px 0}
+  .ex-medal-ico{width:19px;height:19px;border-radius:50%;box-shadow:inset 0 0 0 2px rgba(0,0,0,.18)}
+  .ex-medal-g{background:radial-gradient(circle at 30% 30%, #fff6bf, #ffd700 42%, #c09a00 72%)}
+  .ex-medal-s{background:radial-gradient(circle at 30% 30%, #ffffff, #c0c0c0 45%, #8a8a8a 75%)}
+  .ex-medal-b{background:radial-gradient(circle at 30% 30%, #ffd1a3, #cd7f32 45%, #8b4f1f 75%)}
+  .ex-medal-label{font-size:14px;font-weight:800;color:#cbd5e1}
 
   /* ── 캡처(다운로드) : 헤더 포함 ── */
   .ex-root{width:1080px;background:#0e141c;color:#fff;padding:28px 36px 28px;box-sizing:border-box;-webkit-font-smoothing:antialiased;text-rendering:geometricPrecision}
@@ -108,13 +117,6 @@
   .ex-up{color:#f87171;font-weight:800}
   .ex-down{color:#60a5fa;font-weight:800}
   .ex-same{color:#94a3b8;font-weight:700}
-
-  .ex-medal-row{display:flex;align-items:center;gap:6px;margin-top:2px}
-  .ex-medal-ico{width:16px;height:16px;border-radius:50%;box-shadow:inset 0 0 0 2px rgba(0,0,0,.18)}
-  .ex-medal-g{background:radial-gradient(circle at 30% 30%, #fff6bf, #ffd700 42%, #c09a00 72%)}
-  .ex-medal-s{background:radial-gradient(circle at 30% 30%, #ffffff, #c0c0c0 45%, #8a8a8a 75%)}
-  .ex-medal-b{background:radial-gradient(circle at 30% 30%, #ffd1a3, #cd7f32 45%, #8b4f1f 75%)}
-  .ex-medal-label{font-size:13px;font-weight:800;color:#cbd5e1}
 
   .dropdown-panel{position:absolute;z-index:50;width:100%;margin-top:.5rem;border-radius:12px;background:#0b111a;border:1px solid #1f2a3a;box-shadow:0 10px 25px rgba(0,0,0,.45)}
   .region-item{display:flex;align-items:center;gap:.9rem;padding:.8rem 1rem;border-radius:.75rem;cursor:pointer}
@@ -226,7 +228,7 @@
     return (typeof n==='number') ? `<span class="chip">지역${n}위</span>` : '';
   }
 
-  /* 메달 HTML */
+  /* 메달 HTML (UI/ex 공용) */
   function medalRow(rank, ex=false){
     if(rank!==1 && rank!==2 && rank!==3) return '';
     const rowCls = ex ? 'ex-medal-row' : 'medal-row';
@@ -259,18 +261,25 @@
     return `
     <div class="card shadow-smooth rounded-2xl px-5 sm:px-7 py-5 ${byRankClass(it.rank)}">
       <div class="grid grid-cols-12 items-center gap-4">
-        <div class="col-span-2 sm:col-span-1 flex flex-col items-start">
-          <div class="text-3xl sm:text-4xl font-extrabold num">${it.rank}</div>
+        <!-- 왼쪽: 메달(위) + 랭킹 숫자(아래) -->
+        <div class="col-span-2 sm:col-span-1 rank-cell">
           ${medalRow(it.rank)}
+          <div class="text-3xl sm:text-4xl font-extrabold num">${it.rank}</div>
         </div>
+
+        <!-- 랭킹 변화/지역 랭킹 -->
         <div class="col-span-3 sm:col-span-3 flex flex-col items-start gap-1.5">
           ${movementBadge(it.move)}
           ${regionalBadge(it.team, it.city)}
         </div>
+
+        <!-- 팀/지역 -->
         <div class="col-span-4 sm:col-span-5">
           <div class="team-name font-semibold">${it.team}</div>
           <div class="city-line muted mt-0.5">${it.city || ''}</div>
         </div>
+
+        <!-- 점수 -->
         <div class="col-span-3 sm:col-span-3 text-right">
           <div class="accent num score-value score-value-ui font-extrabold">${scoreText}</div>
           <div class="mt-1.5 flex justify-end items-baseline gap-1.5">
@@ -363,7 +372,7 @@
       const pick=(ks,cands)=>{for(const c of cands){const f=ks.find(k=>(k||"").toLowerCase().includes(c.toLowerCase())); if(f) return f} return null};
       const map={
         rank:pick(keys,["랭킹","순위","rank"]),
-        team:pick(keys,["팀","팀명","name","team","클럽"]),
+        team:pick(keys,["팀","팀명","name","team","클ub","클럽"]),
         city:pick(keys,["지역","연고","도시","city","location"]),
         score:pick(keys,["점수","score","포인트","point"]),
         move:pick(keys,["랭킹 변화","증감","변동","delta","updown","전주대비","전월대비"]),
@@ -511,9 +520,9 @@
       return `
       <div class="ex-card ${byRankClass(it.rank)}">
         <div class="ex-grid">
-          <div>
-            <div class="ex-rank-num num">${it.rank}</div>
+          <div class="rank-cell">
             ${medalRow(it.rank, true)}
+            <div class="ex-rank-num num">${it.rank}</div>
           </div>
           <div>${moveHTML}</div>
           <div>
